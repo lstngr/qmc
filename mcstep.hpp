@@ -1,5 +1,5 @@
-#ifndef QMCSTEP
-#define QMCSTEP
+#ifndef MCSTEP
+#define MCSTEP
 
 #include <vector>
 #include <random>
@@ -13,10 +13,10 @@
  */
 namespace qmc{
 
-    class QMCStep{
+    class MCStep{
         public:
-            QMCStep();
-            virtual ~QMCStep();
+            MCStep();
+            virtual ~MCStep();
             void DiagUpdate();
             std::vector<int> BondToSpins(unsigned int num_bond);
             void FlipSpins(unsigned int num_bond);
@@ -37,8 +37,8 @@ namespace qmc{
             std::uniform_int_distribution<unsigned int> random_spin; //!< Calls rdm_engine to generate random spins
             std::uniform_real_distribution<double> random_prob; //!< Generates a random probability
 
-    }; // class QMCStep
+    }; // class MCStep
 
 } // namespace qmc
 
-#endif // define QMCSTEP
+#endif // define MCSTEP

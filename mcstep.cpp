@@ -1,13 +1,13 @@
-#include "qmcstep.hpp"
+#include "mcstep.hpp"
 #include <iostream>
 
 using namespace qmc;
 
-//! QMCStep constructor
+//! MCStep constructor
 /*!
  * This constructor currently uses a set of hard-coded values for simplicity.
  */
-QMCStep::QMCStep() : op_str_length(16), num_cur_op(0), beta(10) {
+MCStep::MCStep() : op_str_length(16), num_cur_op(0), beta(10) {
 
     int spin_number = 8; // Numer of spin to simulate
 
@@ -31,7 +31,7 @@ QMCStep::QMCStep() : op_str_length(16), num_cur_op(0), beta(10) {
  * Empty for now. Will be used when dynamic allocation is employed in the future
  * of the project.
  */
-QMCStep::~QMCStep(){
+MCStep::~MCStep(){
     // Close random number generator
 }
 
@@ -40,7 +40,7 @@ QMCStep::~QMCStep(){
  * Inserts or removes diagonal operators from the system. Also updates spins if
  * an off-diagonal operator is encountered.
  */
-void QMCStep::DiagUpdate(){
+void MCStep::DiagUpdate(){
 
     std::cout << "Before: " << std::endl;
     this->PrintOperators();
@@ -77,34 +77,34 @@ void QMCStep::DiagUpdate(){
     this->PrintSpins();
     std::cout << std::endl;
 
-} // QMCStep::DiagUpdate
+} // MCStep::DiagUpdate
 
 
 //! Takes a bond index, returns the two corresponding spin indexes
-std::vector<int> QMCStep::BondToSpins(unsigned int num_bond){
+std::vector<int> MCStep::BondToSpins(unsigned int num_bond){
     std::vector<int> spins(2,0);
     spins[0] = this->spins[num_bond];
     spins[1] = this->spins[(num_bond+1)%this->spins.size()]; // Works for a 1D circular chain
     return spins;
-} // QMCStep::BondToSpins
+} // MCStep::BondToSpins
 
 
 //! Flips the spins belonging to a given bond
-void QMCStep::FlipSpins(unsigned int num_bond){
+void MCStep::FlipSpins(unsigned int num_bond){
     this->spins[num_bond] = - this->spins[num_bond];
     this->spins[(num_bond+1)%this->spins.size()] = - this->spins[(num_bond+1)%this->spins.size()];
-} // QMCStep::FlipSpins
+} // MCStep::FlipSpins
 
 
 //! Displays the operator chain for debugging purposes
-void QMCStep::PrintOperators(){
+void MCStep::PrintOperators(){
     for (auto op : this->op_chain)
         std::cout << op << " ";
     std::cout << std::endl;
 }
 
 //! Displays the operator chain for debugging purposes
-void QMCStep::PrintSpins(){
+void MCStep::PrintSpins(){
     for (auto sp : this->spins)
         std::cout << sp << " ";
     std::cout << std::endl;
@@ -115,7 +115,7 @@ void QMCStep::PrintSpins(){
  * Computes the probability of inserting a diagonal operator (from the current
  * state of the system).
  */
-bool QMCStep::AuthInsert() {
+bool MCStep::AuthInsert() {
     unsigned int num_bond(spins.size());
     double threshold_accept(std::min(beta*num_bond / (2.*(op_str_length-num_cur_op)),1.0));
 
@@ -129,7 +129,7 @@ bool QMCStep::AuthInsert() {
  * Computes the probability of removing a diagonal operator (from the current
  * state of the system).
  */
-bool QMCStep::AuthRemove() {
+bool MCStep::AuthRemove() {
     unsigned int num_bond(spins.size());
     double threshold_remove(std::min(2.0 * (op_str_length-num_cur_op+1) / (beta*num_bond),1.0));
 

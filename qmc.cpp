@@ -1,9 +1,9 @@
 #include <iostream>
-#include "qmcstep.hpp"
+#include "mcstep.hpp"
 
 int main(){
     // Declare system
-    qmc::QMCStep engine;
+    qmc::MCStep engine;
     for (int i=0; i<19; i++){
         std::cout << "Sweep " << i << std::endl;
         engine.DiagUpdate();
