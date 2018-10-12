@@ -7,23 +7,16 @@ using namespace qmc;
 /*!
  * This constructor currently uses a set of hard-coded values for simplicity.
  */
-MCStep::MCStep() : op_str_length(16), num_cur_op(0), beta(10) {
+MCStep::MCStep() : beta(10) {
 
     int spin_number = 8; // Numer of spin to simulate
-
-    op_chain = std::vector<int>(op_str_length,-1); // Have empty operators (identity) when initializing (== imaginary time axis length)
+    int op_str_length = 16; // Number of time slots 
+    rdm_engine = std::mt19937(1); // Seed is 0
+    sse_data = new SSEData(op_str_length,spin_number,&rdm_engine);
 
     // Initialize number generators
-    rdm_engine = std::mt19937(1); // Seed is 0
     random_bond = std::uniform_int_distribution<unsigned int>(0,spin_number-1);
     random_prob = std::uniform_real_distribution<double>(0.0,1.0);
-    random_spin = std::uniform_int_distribution<unsigned int>(0,1);
-
-    spins = std::vector<int>(spin_number,1); // All spins are intialized to up (== spin axis length)
-    for (unsigned int i=0; i<spins.size(); i++)
-        spins[i] = 2 * random_spin(this->rdm_engine) - 1;
-
-
 }
 
 //! Class destructor
@@ -33,6 +26,7 @@ MCStep::MCStep() : op_str_length(16), num_cur_op(0), beta(10) {
  */
 MCStep::~MCStep(){
     // Close random number generator
+    delete sse_data;
 }
 
 //! Performs a diagonal update on the system
@@ -47,27 +41,25 @@ void MCStep::DiagUpdate(){
     this->PrintSpins();
 
     // Iterate over all possible operator positions
-    for(unsigned int i=0; i<op_str_length; i++){
-        if(this->op_chain[i]==-1){ // No operator here
+    for(unsigned int i=0; i<sse_data->OperatorNumber(false); i++){
+        if(sse_data->GetOperator(i)==-1){ // No operator here
             unsigned int bond_num(random_bond(this->rdm_engine));
             std::vector<int> random_bond_spins(this->BondToSpins(bond_num));
             if(random_bond_spins[0] != random_bond_spins[1] && AuthInsert()){
                 // Try insertion
                 std::cout << "Diagonal Insertion (bond " << bond_num << ", spins " << random_bond_spins[0] << " " << random_bond_spins[1] << ")" << std::endl;
-                op_chain[i] = 2 * bond_num;
-                this->num_cur_op++;
+                sse_data->SetOperator(i, 2 * bond_num);
             }
         }
-        else if(op_chain[i]%2==0){ // There exists a diagonal operator
+        else if(sse_data->GetOperator(i)%2==0){ // There exists a diagonal operator
             // try remove
             if(AuthRemove()){
                 std::cout << "Diagonal Removal (operator " << i << ")" << std::endl;
-                op_chain[i] = -1;
-                this->num_cur_op--;
+                sse_data->SetOperator(i,-1);
             }
         }
-        else if(op_chain[i]!=-1){ // Off-Diagonal operator, update spins
-            unsigned int bond = (op_chain[i]-1)/2;
+        else if(sse_data->GetOperator(i)!=-1){ // Off-Diagonal operator, update spins
+            unsigned int bond = (sse_data->GetOperator(i)-1)/2;
             this->FlipSpins(bond);
         }
     } // for over op_chain

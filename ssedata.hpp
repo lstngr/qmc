@@ -15,7 +15,7 @@ namespace qmc{
         public:
             SSEData(unsigned int time_slots, unsigned int spin_number, std::mt19937* rdm_engine);
             virtual ~SSEData();
-            int OperatorNumber(bool inserted=true);
+            unsigned int OperatorNumber(bool inserted=true);
             int GetOperator(unsigned int idx_oprtr);
             void SetOperator(unsigned int idx_oprtr, int val_oprtr=-1);
         protected:

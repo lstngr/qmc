@@ -36,7 +36,7 @@ SSEData::~SSEData(){}
  * of currently inserted operators, or the maximum number of operators allowed.
  * \param inserted If true, the maximum number of operators is returned.
  */
-int SSEData::OperatorNumber(bool inserted){
+unsigned int SSEData::OperatorNumber(bool inserted){
     if(not inserted)
         return oprtr.size();
 
