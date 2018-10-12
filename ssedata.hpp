@@ -14,6 +14,9 @@ namespace qmc{
         public:
             SSEData();
             virtual ~SSEData();
+            int OperatorNumber(bool inserted=true);
+            int GetOperator(unsigned int idx_oprtr);
+            void SetOperator(unsigned int idx_oprtr, int val_oprtr=-1);
         protected:
 
         private:
