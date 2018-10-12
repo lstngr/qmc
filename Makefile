@@ -1,16 +1,20 @@
+CXX = g++
+CXXFLAGS = -g -O3
+OBJECTS = qmc.o mcstep.o ssedata.o
+
 all: qmc
 
-qmc: qmc.o qmcstep.o
-	g++ -g qmc.o mcstep.o -o qmc
+qmc: $(OBJECTS)
+	$(CXX) $(CXXFLAGS) $(OBJECTS) -o $@
 
 qmc.o: qmc.cpp
-	g++ -g -c qmc.cpp
+	$(CXX) $(CXXFLAGS) -c qmc.cpp -o $@
 
 mcstep.o: mcstep.cpp mcstep.hpp
-	g++ -g -c mcstep.cpp mcstep.hpp
+	$(CXX) $(CXXFLAGS) -c mcstep.cpp -o $@
 
 ssedata.o: ssedata.cpp ssedata.hpp
-	g++ -g -c ssedata.cpp ssedata.hpp
+	$(CXX) $(CXXFLAGS) -c ssedata.cpp -o $@
 
 clean:
-	rm -f *.o *.gch qmc 
+	-rm -r *.o *.gch qmc html/ latex/

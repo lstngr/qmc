@@ -1,9 +1,9 @@
 #ifndef MCSTEP
 #define MCSTEP
 
+#include "ssedata.hpp"
 #include <vector>
 #include <random>
-#include "ssedata.hpp"
 
 /*! \brief Class managing the QMC simulation
  *

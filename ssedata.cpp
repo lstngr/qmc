@@ -1,4 +1,5 @@
 #include "ssedata.hpp"
+#include <iostream>
 
 using namespace qmc;
 
@@ -36,7 +37,7 @@ SSEData::~SSEData(){}
  * of currently inserted operators, or the maximum number of operators allowed.
  * \param inserted If true, the maximum number of operators is returned.
  */
-unsigned int SSEData::OperatorNumber(bool inserted){
+unsigned int SSEData::GetOperatorNumber(bool inserted){
     if(not inserted)
         return oprtr.size();
 
@@ -69,4 +70,48 @@ int SSEData::GetOperator(unsigned int idx_oprtr){
 void SSEData::SetOperator(unsigned int idx_oprtr, int val_oprtr){
     // Should implement index and value checks
     oprtr[idx_oprtr] = val_oprtr;
+}
+
+//! Returns two spins belonging to a given bond
+/*!
+ * Returns a two-elements vector containing the spin values of the given bond
+ * index.
+ * \param num_bond Number of the bond. Should be < than the number of spins.
+ */
+std::vector<int> SSEData::GetBondSpins(unsigned int num_bond){
+    std::vector<int> spins(2,0);
+    spins[0] = this->spins[num_bond];
+    spins[1] = this->spins[(num_bond+1)%this->spins.size()];
+
+    return spins;
+}
+
+//! Flips the spins in a given bond
+/*!
+ * Looks up the spins belonging to a given bond and flips them. Useful when
+ * encountering an off-diagonal operator during a MC sweep.
+ * \param num_bond Index of the bond. Should be < than the number of spins.
+ */
+void SSEData::FlipSpins(unsigned int num_bond){
+    spins[num_bond] *= -1;
+    spins[(num_bond+1)%this->spins.size()] *= -1;
+}
+
+//! Prints operators for debbuging purposes
+void SSEData::PrintOperators(){
+    for(auto&& val_oprtr : oprtr)
+        std::cout << val_oprtr << " ";
+    std::cout << std::endl;
+}
+
+//! Prints spins for debbuging purposes
+void SSEData::PrintSpins(){
+    for(auto&& val_spin : spins)
+        std::cout << val_spin << " ";
+    std::cout << std::endl;
+}
+
+
+unsigned int SSEData::GetSpinNumber(){
+    return spins.size();
 }
