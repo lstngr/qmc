@@ -10,4 +10,4 @@ qmcstep.o: mcstep.cpp mcstep.hpp
 	g++ -g -c mcstep.cpp mcstep.hpp
 
 clean:
-	rm *.o *.gch qmc 
+	rm -f *.o *.gch qmc 
