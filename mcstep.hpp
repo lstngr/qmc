@@ -19,10 +19,6 @@ namespace qmc{
             MCStep();
             virtual ~MCStep();
             void DiagUpdate();
-            std::vector<int> BondToSpins(unsigned int num_bond);
-            void FlipSpins(unsigned int num_bond);
-            void PrintOperators();
-            void PrintSpins();
             bool AuthInsert();
             bool AuthRemove();
         protected:

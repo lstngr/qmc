@@ -10,7 +10,7 @@ using namespace qmc;
 MCStep::MCStep() : beta(10) {
 
     int spin_number = 8; // Numer of spin to simulate
-    int op_str_length = 16; // Number of time slots 
+    int op_str_length = 16; // Number of time slots
     rdm_engine = std::mt19937(1); // Seed is 0
     sse_data = new SSEData(op_str_length,spin_number,&rdm_engine);
 
@@ -37,14 +37,14 @@ MCStep::~MCStep(){
 void MCStep::DiagUpdate(){
 
     std::cout << "Before: " << std::endl;
-    this->PrintOperators();
-    this->PrintSpins();
+    sse_data->PrintOperators();
+    sse_data->PrintSpins();
 
     // Iterate over all possible operator positions
-    for(unsigned int i=0; i<sse_data->OperatorNumber(false); i++){
+    for(unsigned int i=0; i<sse_data->GetOperatorNumber(false); i++){
         if(sse_data->GetOperator(i)==-1){ // No operator here
             unsigned int bond_num(random_bond(this->rdm_engine));
-            std::vector<int> random_bond_spins(this->BondToSpins(bond_num));
+            std::vector<int> random_bond_spins(sse_data->GetBondSpins(bond_num));
             if(random_bond_spins[0] != random_bond_spins[1] && AuthInsert()){
                 // Try insertion
                 std::cout << "Diagonal Insertion (bond " << bond_num << ", spins " << random_bond_spins[0] << " " << random_bond_spins[1] << ")" << std::endl;
@@ -60,47 +60,17 @@ void MCStep::DiagUpdate(){
         }
         else if(sse_data->GetOperator(i)!=-1){ // Off-Diagonal operator, update spins
             unsigned int bond = (sse_data->GetOperator(i)-1)/2;
-            this->FlipSpins(bond);
+            sse_data->FlipSpins(bond);
         }
     } // for over op_chain
 
     std::cout << "After: ";
-    this->PrintOperators();
-    this->PrintSpins();
+    sse_data->PrintOperators();
+    sse_data->PrintSpins();
     std::cout << std::endl;
 
 } // MCStep::DiagUpdate
 
-
-//! Takes a bond index, returns the two corresponding spin indexes
-std::vector<int> MCStep::BondToSpins(unsigned int num_bond){
-    std::vector<int> spins(2,0);
-    spins[0] = this->spins[num_bond];
-    spins[1] = this->spins[(num_bond+1)%this->spins.size()]; // Works for a 1D circular chain
-    return spins;
-} // MCStep::BondToSpins
-
-
-//! Flips the spins belonging to a given bond
-void MCStep::FlipSpins(unsigned int num_bond){
-    this->spins[num_bond] = - this->spins[num_bond];
-    this->spins[(num_bond+1)%this->spins.size()] = - this->spins[(num_bond+1)%this->spins.size()];
-} // MCStep::FlipSpins
-
-
-//! Displays the operator chain for debugging purposes
-void MCStep::PrintOperators(){
-    for (auto op : this->op_chain)
-        std::cout << op << " ";
-    std::cout << std::endl;
-}
-
-//! Displays the operator chain for debugging purposes
-void MCStep::PrintSpins(){
-    for (auto sp : this->spins)
-        std::cout << sp << " ";
-    std::cout << std::endl;
-}
 
 //! Diagonal insertion probability
 /*!
@@ -108,8 +78,8 @@ void MCStep::PrintSpins(){
  * state of the system).
  */
 bool MCStep::AuthInsert() {
-    unsigned int num_bond(spins.size());
-    double threshold_accept(std::min(beta*num_bond / (2.*(op_str_length-num_cur_op)),1.0));
+    unsigned int num_bond(sse_data->GetSpinNumber());
+    double threshold_accept(std::min(beta*num_bond / (2.*(sse_data->GetOperatorNumber(false)-sse_data->GetOperatorNumber())),1.0));
 
     if(random_prob(rdm_engine) < threshold_accept)
         return true;
@@ -122,8 +92,8 @@ bool MCStep::AuthInsert() {
  * state of the system).
  */
 bool MCStep::AuthRemove() {
-    unsigned int num_bond(spins.size());
-    double threshold_remove(std::min(2.0 * (op_str_length-num_cur_op+1) / (beta*num_bond),1.0));
+    unsigned int num_bond(sse_data->GetSpinNumber());
+    double threshold_remove(std::min(2.0 * (sse_data->GetOperatorNumber(false)-sse_data->GetOperatorNumber()+1) / (beta*num_bond),1.0));
 
     if(random_prob(rdm_engine) < threshold_remove)
         return true;

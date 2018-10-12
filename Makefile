@@ -13,4 +13,4 @@ ssedata.o: ssedata.cpp ssedata.hpp
 	g++ -g -c ssedata.cpp ssedata.hpp
 
 clean:
-	rm *.o *.gch qmc 
+	rm -f *.o *.gch qmc 
