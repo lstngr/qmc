@@ -7,11 +7,19 @@ using namespace qmc;
  * This constructor will be called from qmc::MCStep::MCStep() when initializing
  * the simulation's storage.
  */
-SSEData::SSEData(): num_time_slots(10){
+SSEData::SSEData(unsigned int time_slots, unsigned int spin_number, std::mt19937* rdm_engine)
+    : num_time_slots(time_slots)
+{
 
-    spins = std::vector<int>(50,0);
-    oprtr = std::vector<int>(num_time_slots,0);
-    bond_vertex = std::vector<std::vector<int>>(num_time_slots,std::vector<int>(4,0));
+    // Prepare random spin generation
+    std::uniform_int_distribution<unsigned int> random_spin(0,1);
+
+    spins = std::vector<int>(spin_number,0);
+    oprtr = std::vector<int>(num_time_slots,-1);
+    bond_vertex = std::vector<std::vector<int>>(num_time_slots,std::vector<int>(4,-1));
+
+    for(unsigned int idx_spin=0; idx_spin<spin_number; idx_spin++)
+        spins[idx_spin] = 2*random_spin(*rdm_engine) - 1;
 
 }
 
