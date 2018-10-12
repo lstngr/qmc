@@ -2,6 +2,7 @@
 #define SSEDATA
 
 #include <vector>
+#include <random>
 
 /*! \brief Class containing the system's spin state.
  *
@@ -12,8 +13,16 @@ namespace qmc{
 
     class SSEData{
         public:
-            SSEData();
+            SSEData(unsigned int time_slots, unsigned int spin_number, std::mt19937* rdm_engine);
             virtual ~SSEData();
+            unsigned int GetOperatorNumber(bool inserted=true);
+            int GetOperator(unsigned int idx_oprtr);
+            void SetOperator(unsigned int idx_oprtr, int val_oprtr=-1);
+            std::vector<int> GetBondSpins(unsigned int num_bond);
+            void FlipSpins(unsigned int num_bond);
+            void PrintOperators();
+            void PrintSpins();
+            unsigned int GetSpinNumber();
         protected:
 
         private:

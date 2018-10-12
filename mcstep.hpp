@@ -1,6 +1,7 @@
 #ifndef MCSTEP
 #define MCSTEP
 
+#include "ssedata.hpp"
 #include <vector>
 #include <random>
 
@@ -18,26 +19,15 @@ namespace qmc{
             MCStep();
             virtual ~MCStep();
             void DiagUpdate();
-            std::vector<int> BondToSpins(unsigned int num_bond);
-            void FlipSpins(unsigned int num_bond);
-            void PrintOperators();
-            void PrintSpins();
             bool AuthInsert();
             bool AuthRemove();
             void SetBeta(double beta=10);
-            void SetOperatorLength(unsigned int num_oprtr=16);
-            void SetSpinsLength(unsigned int num_spin=8);
         protected:
         private:
-            unsigned int op_str_length; //!< Limit for total operator number
-            unsigned int num_cur_op; //!< Current number of operators in the system
-            std::vector<int> spins; //!< Spin values
-            std::vector<int> op_chain; //!< Operator string
+            SSEData* sse_data; //!< Spin and operator state of the system
             double beta; //!< Thermodynamic Beta
-
             std::mt19937 rdm_engine; //!< Random number generator engine
             std::uniform_int_distribution<unsigned int> random_bond; //!< Calls rdm_engine to generate random bonds
-            std::uniform_int_distribution<unsigned int> random_spin; //!< Calls rdm_engine to generate random spins
             std::uniform_real_distribution<double> random_prob; //!< Generates a random probability
 
     }; // class MCStep
