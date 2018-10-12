@@ -13,7 +13,7 @@ MCStep::MCStep(){
 
     // Initialize number generators
     rdm_engine = std::mt19937(1);
-    random_bond = std::uniform_int_distribution<unsigned int>(0,spin_number-1);
+    random_bond = std::uniform_int_distribution<unsigned int>(0,spin_number-1); //TODO Boundaries included?
     random_prob = std::uniform_real_distribution<double>(0.0,1.0);
     random_spin = std::uniform_int_distribution<unsigned int>(0,1);
 
@@ -83,6 +83,8 @@ void MCStep::DiagUpdate(){
                 std::cout << "Diagonal Insertion (bond " << bond_num << ", spins " << random_bond_spins[0] << " " << random_bond_spins[1] << ")" << std::endl;
                 op_chain[i] = 2 * bond_num;
                 this->num_cur_op++;
+
+                //TODO -> Bond Vertex update
             }
         }
         else if(op_chain[i]%2==0){ // There exists a diagonal operator
@@ -93,8 +95,8 @@ void MCStep::DiagUpdate(){
                 this->num_cur_op--;
             }
         }
-        else if(op_chain[i]!=-1){ // Off-Diagonal operator, update spins
-            unsigned int bond = (op_chain[i]-1)/2;
+        else{ // Off-Diagonal operator, update spins
+            unsigned int bond = op_chain[i]/2;
             this->FlipSpins(bond);
         }
     } // for over op_chain
@@ -158,7 +160,7 @@ bool MCStep::AuthInsert() {
  */
 bool MCStep::AuthRemove() {
     unsigned int num_bond(spins.size());
-    double threshold_remove(std::min(2.0 * (op_str_length-num_cur_op+1) / (beta*num_bond),1.0));
+    double threshold_remove(std::min(2.0 * (op_str_length-num_cur_op+1.) / (beta*num_bond),1.0));
 
     if(random_prob(rdm_engine) < threshold_remove)
         return true;

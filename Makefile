@@ -1,13 +1,13 @@
 all: qmc
 
-qmc: qmc.o qmcstep.o
-	g++ -g qmc.o qmcstep.o -o qmc
+qmc: qmc.o mcstep.o
+	g++ -g qmc.o mcstep.o -o qmc
 
 qmc.o: qmc.cpp
 	g++ -g -c qmc.cpp
 
-qmcstep.o: qmcstep.cpp qmcstep.hpp
-	g++ -g -c qmcstep.cpp qmcstep.hpp
+qmcstep.o: mcstep.cpp mcstep.hpp
+	g++ -g -c mcstep.cpp mcstep.hpp
 
 clean:
 	rm *.o *.gch qmc 
