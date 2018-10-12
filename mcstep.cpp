@@ -7,23 +7,19 @@ using namespace qmc;
 /*!
  * This constructor currently uses a set of hard-coded values for simplicity.
  */
-MCStep::MCStep() : op_str_length(16), num_cur_op(0), beta(10) {
+MCStep::MCStep(){
 
     int spin_number = 8; // Numer of spin to simulate
 
-    op_chain = std::vector<int>(op_str_length,-1); // Have empty operators (identity) when initializing (== imaginary time axis length)
-
     // Initialize number generators
-    rdm_engine = std::mt19937(1); // Seed is 0
+    rdm_engine = std::mt19937(1);
     random_bond = std::uniform_int_distribution<unsigned int>(0,spin_number-1);
     random_prob = std::uniform_real_distribution<double>(0.0,1.0);
     random_spin = std::uniform_int_distribution<unsigned int>(0,1);
 
-    spins = std::vector<int>(spin_number,1); // All spins are intialized to up (== spin axis length)
-    for (unsigned int i=0; i<spins.size(); i++)
-        spins[i] = 2 * random_spin(this->rdm_engine) - 1;
-
-
+    SetBeta();
+    SetOperatorLength();
+    SetSpinsLength(spin_number);
 }
 
 //! Class destructor
@@ -33,6 +29,37 @@ MCStep::MCStep() : op_str_length(16), num_cur_op(0), beta(10) {
  */
 MCStep::~MCStep(){
     // Close random number generator
+}
+
+//! Set Beta parameter
+/*!
+ * Sets the thermodynamic Beta parameter. Can be called at anytime, but
+ * specifically by the class constructor.
+ */
+void MCStep::SetBeta(double beta){
+    this->beta = beta;
+}
+
+//! Set the number of operators in the system
+/*!
+ * Initializes a storage for operators. This will destroy any operator state
+ * present in the system!
+ */
+void MCStep::SetOperatorLength(unsigned int num_oprtr){
+    op_str_length = num_oprtr;
+    num_cur_op = 0;
+    op_chain = std::vector<int>(num_oprtr,-1);
+}
+
+//! Set the number of spins in the system
+/*!
+ * Initializes a storage for spins. This will destroy any spin state already
+ * existing!
+ */
+void MCStep::SetSpinsLength(unsigned int num_spin){
+    spins = std::vector<int>(num_spin,0);
+    for (unsigned int i=0; i<spins.size(); i++)
+        spins[i] = 2 * random_spin(this->rdm_engine) - 1;
 }
 
 //! Performs a diagonal update on the system

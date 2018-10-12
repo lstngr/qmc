@@ -24,6 +24,9 @@ namespace qmc{
             void PrintSpins();
             bool AuthInsert();
             bool AuthRemove();
+            void SetBeta(double beta=10);
+            void SetOperatorLength(unsigned int num_oprtr=16);
+            void SetSpinsLength(unsigned int num_spin=8);
         protected:
         private:
             unsigned int op_str_length; //!< Limit for total operator number
