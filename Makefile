@@ -17,4 +17,4 @@ ssedata.o: ssedata.cpp ssedata.hpp
 	$(CXX) $(CXXFLAGS) -c ssedata.cpp -o $@
 
 clean:
-	-rm -r *.o *.gch qmc html/ latex/
+	-rm -fr *.o *.gch qmc html/ latex/

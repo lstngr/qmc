@@ -5,20 +5,21 @@
 #include <vector>
 #include <random>
 
-/*! \brief Class managing the QMC simulation
- *
- * This class is responsible for running Monte-Carlo sweeps on the
- * considered Heisenberg spin 1/2 system considered. It however doesn't store
- * the system in itself, which is handeld by several other classes (see
- * attributes).
- */
 namespace qmc{
 
+    /*! \brief Class managing the QMC simulation
+     *
+     * This class is responsible for running Monte-Carlo sweeps on the
+     * considered Heisenberg spin 1/2 system considered. It however doesn't store
+     * the system in itself, which is handeld by several other classes (see
+     * attributes).
+     */
     class MCStep{
         public:
             MCStep();
             virtual ~MCStep();
             void DiagUpdate();
+            void LinkVertices();
             bool AuthInsert();
             bool AuthRemove();
             void SetBeta(double beta=10);

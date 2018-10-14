@@ -1,5 +1,6 @@
 #include "ssedata.hpp"
 #include <iostream>
+#include <iomanip>
 
 using namespace qmc;
 
@@ -17,7 +18,7 @@ SSEData::SSEData(unsigned int time_slots, unsigned int spin_number, std::mt19937
 
     spins = std::vector<int>(spin_number,0);
     oprtr = std::vector<int>(num_time_slots,-1);
-    bond_vertex = std::vector<std::vector<int>>(num_time_slots,std::vector<int>(4,-1));
+    link_vertex = std::vector<int>(4*num_time_slots,-1);
 
     for(unsigned int idx_spin=0; idx_spin<spin_number; idx_spin++)
         spins[idx_spin] = 2*random_spin(*rdm_engine) - 1;
@@ -37,7 +38,7 @@ SSEData::~SSEData(){}
  * of currently inserted operators, or the maximum number of operators allowed.
  * \param inserted If true, the maximum number of operators is returned.
  */
-unsigned int SSEData::GetOperatorNumber(bool inserted){
+unsigned int SSEData::GetOperatorNumber(bool inserted) const{
     if(not inserted)
         return oprtr.size();
 
@@ -56,7 +57,7 @@ unsigned int SSEData::GetOperatorNumber(bool inserted){
  * location (time slot).
  * \param idx_oprtr Time slot index where the operator lives.
  */
-int SSEData::GetOperator(unsigned int idx_oprtr){
+int SSEData::GetOperator(unsigned int idx_oprtr) const{
     // Should implement index checks to avoid segmentation faults.
     return oprtr[idx_oprtr];
 }
@@ -65,6 +66,7 @@ int SSEData::GetOperator(unsigned int idx_oprtr){
 /*!
  * Sets the value of an operator at a given time slot index. If called without
  * setting value, the identity operator is inserted.
+ * \param idx_oprtr The index (p) of the operator to set.
  * \param val_oprtr s(p)=2*b+a-1 value to set the given operator to.
  */
 void SSEData::SetOperator(unsigned int idx_oprtr, int val_oprtr){
@@ -78,7 +80,7 @@ void SSEData::SetOperator(unsigned int idx_oprtr, int val_oprtr){
  * index.
  * \param num_bond Number of the bond. Should be < than the number of spins.
  */
-std::vector<int> SSEData::GetBondSpins(unsigned int num_bond){
+std::vector<int> SSEData::GetBondSpins(unsigned int num_bond) const{
     std::vector<int> spins(2,0);
     spins[0] = this->spins[num_bond];
     spins[1] = this->spins[(num_bond+1)%this->spins.size()];
@@ -98,20 +100,47 @@ void SSEData::FlipSpins(unsigned int num_bond){
 }
 
 //! Prints operators for debbuging purposes
-void SSEData::PrintOperators(){
+void SSEData::PrintOperators() const{
     for(auto&& val_oprtr : oprtr)
         std::cout << val_oprtr << " ";
     std::cout << std::endl;
 }
 
 //! Prints spins for debbuging purposes
-void SSEData::PrintSpins(){
+void SSEData::PrintSpins() const{
     for(auto&& val_spin : spins)
         std::cout << val_spin << " ";
     std::cout << std::endl;
 }
 
+//! Prints the vertex link table
+void SSEData::PrintLinks() const{
 
-unsigned int SSEData::GetSpinNumber(){
+    std::cout << "Linked Vertex Table" << std::endl;
+    std::cout << std::left << std::setw(4) << "v " << std::left << std::setw(4) << "X(v)" << std::endl;
+
+    for(unsigned int idx(0); idx<link_vertex.size(); idx++){
+        std::cout << std::left << std::setw(4) << idx << std::left << std::setw(4) << link_vertex[idx] << std::endl;
+
+    }
+
+}
+
+//! Returns current number of spins
+unsigned int SSEData::GetSpinNumber() const{
     return spins.size();
+}
+
+//! Creates a link between input vertices
+/*!
+ * Updates link_vertex so that the given indexes refer to each other.
+ * \param vertex_0 One vertex index (4p+l)
+ * \param vertex_1 Some other vertex index of the same form!
+ */
+void SSEData::LinkVertex(unsigned int vertex_0, unsigned int vertex_1){
+#ifdef DEBUG_MODE
+    std::cout << "Linking " << vertex_0 << " and " << vertex_1 << std::endl;
+#endif //DEBUG_MODE
+    link_vertex[vertex_0] = vertex_1;
+    link_vertex[vertex_1] = vertex_0;
 }

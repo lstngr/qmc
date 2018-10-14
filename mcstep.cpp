@@ -9,8 +9,8 @@ using namespace qmc;
  */
 MCStep::MCStep() : beta(10) {
 
-    int spin_number = 8; // Numer of spin to simulate
-    int op_str_length = 16; // Number of time slots
+    int spin_number = 6; // Numer of spin to simulate
+    int op_str_length = 6; // Number of time slots
     rdm_engine = std::mt19937(1); // Seed is 0
     sse_data = new SSEData(op_str_length,spin_number,&rdm_engine);
     //TODO Boundaries included?
@@ -45,9 +45,11 @@ void MCStep::SetBeta(double beta){
  */
 void MCStep::DiagUpdate(){
 
+#ifdef DEBUG_MODE
     std::cout << "Before: " << std::endl;
     sse_data->PrintOperators();
     sse_data->PrintSpins();
+#endif //DEBUG_MODE
 
     // Iterate over all possible operator positions
     for(unsigned int i=0; i<sse_data->GetOperatorNumber(false); i++){
@@ -56,30 +58,85 @@ void MCStep::DiagUpdate(){
             std::vector<int> random_bond_spins(sse_data->GetBondSpins(bond_num));
             if(random_bond_spins[0] != random_bond_spins[1] && AuthInsert()){
                 // Try insertion
+#ifdef DEBUG_MODE
                 std::cout << "Diagonal Insertion (bond " << bond_num << ", spins " << random_bond_spins[0] << " " << random_bond_spins[1] << ")" << std::endl;
+#endif // DEBUG_MODE
                 sse_data->SetOperator(i, 2 * bond_num);
             }
         }
         else if(sse_data->GetOperator(i)%2==0){ // There exists a diagonal operator
             // try remove
             if(AuthRemove()){
+#ifdef DEBUG_MODE
                 std::cout << "Diagonal Removal (operator " << i << ")" << std::endl;
+#endif // DEBUG_MODE
                 sse_data->SetOperator(i,-1);
             }
         }
         else{ // Off-Diagonal operator, update spins
-            unsigned int bond = (sse_data->GetOperator(i)-1)/2;
+            unsigned int bond = sse_data->GetOperator(i)/2;
             sse_data->FlipSpins(bond);
         }
     } // for over op_chain
 
+#ifdef DEBUG_MODE
     std::cout << "After: ";
     sse_data->PrintOperators();
     sse_data->PrintSpins();
     std::cout << std::endl;
+#endif //DEBUG_MODE
 
 } // MCStep::DiagUpdate
 
+
+//! Updates the linked vertex list
+/*!
+ * Between operator interactions, each spin must be connected with it's
+ * imaginary time partner. This function iterates on a "linked vertex" list in
+ * order to create those references.
+ */
+void MCStep::LinkVertices(){
+
+    std::vector<int> pos_last (sse_data->GetSpinNumber(),-1);
+    std::vector<int> pos_first(sse_data->GetSpinNumber(),-1);
+
+    // Link operators from 0->L-1
+    for(unsigned int i=0; i<sse_data->GetOperatorNumber(false); i++){
+        if(sse_data->GetOperator(i) != -1){
+            int pos_oprtr(4*i);
+            int idx_spin_1(sse_data->GetOperator(i)/2);
+            int idx_spin_2(sse_data->GetOperator(i)/2+1);
+
+#ifdef DEBUG_MODE
+            std::cout << "pos_oprtr=" << pos_oprtr << ", spins " << idx_spin_1 << " " << idx_spin_2 << std::endl;
+#endif //DEBUG_MODE
+
+            if(pos_last[idx_spin_1] != -1)
+                sse_data->LinkVertex(pos_last[idx_spin_1],pos_oprtr);
+            else
+                pos_first[idx_spin_1] = pos_oprtr;
+
+            if(pos_last[idx_spin_2] != -1)
+                sse_data->LinkVertex(pos_last[idx_spin_2],pos_oprtr+1);
+            else
+                pos_first[idx_spin_2] = pos_oprtr + 1;
+
+            pos_last[idx_spin_1] = pos_oprtr + 2;
+            pos_last[idx_spin_2] = pos_oprtr + 3;
+        }
+    }
+
+    // Link across last time boundary L-1->0
+    for(unsigned int i=0; i<pos_first.size(); i++){
+        if(pos_first[i] != -1)
+            sse_data->LinkVertex(pos_first[i],pos_last[i]);
+    }
+
+#ifdef DEBUG_MODE
+    sse_data->PrintLinks();
+    std::cout << std::endl;
+#endif //DEBUG_MODE
+}
 
 //! Diagonal insertion probability
 /*!
