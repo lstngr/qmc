@@ -1,4 +1,9 @@
-//#define DEBUG_MODE
+#ifndef DEBUG_CONF
+#define DEBUG_CONF
+
+#include "debug_conf.hpp"
+#endif //DEBUG_CONF
+
 #ifndef SSEDATA
 #define SSEDATA
 

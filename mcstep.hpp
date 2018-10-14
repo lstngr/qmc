@@ -1,3 +1,9 @@
+#ifndef DEBUG_CONF
+#define DEBUG_CONF
+
+#include "debug_conf.hpp"
+#endif //DEBUG_CONF
+
 #ifndef MCSTEP
 #define MCSTEP
 
