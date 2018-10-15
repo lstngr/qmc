@@ -45,11 +45,11 @@ void MCStep::SetBeta(double beta){
  */
 void MCStep::DiagUpdate(){
 
-#ifdef DEBUG_MODE
-    std::cout << "Before: " << std::endl;
+#ifdef DEBUG_GEN_BLOCK
+    std::cerr << "Before: " << std::endl;
     sse_data->PrintOperators();
     sse_data->PrintSpins();
-#endif //DEBUG_MODE
+#endif //DEBUG_GEN_BLOCK
 
     // Iterate over all possible operator positions
     for(unsigned int i=0; i<sse_data->GetOperatorNumber(false); i++){
@@ -58,18 +58,14 @@ void MCStep::DiagUpdate(){
             std::vector<int> random_bond_spins(sse_data->GetBondSpins(bond_num));
             if(random_bond_spins[0] != random_bond_spins[1] && AuthInsert()){
                 // Try insertion
-#ifdef DEBUG_MODE
-                std::cout << "Diagonal Insertion (bond " << bond_num << ", spins " << random_bond_spins[0] << " " << random_bond_spins[1] << ")" << std::endl;
-#endif // DEBUG_MODE
+                DEBUG_GEN("Diagonal Insertion (bond " << bond_num << ", spins " << random_bond_spins[0] << " " << random_bond_spins[1] << ")" << std::endl);
                 sse_data->SetOperator(i, 2 * bond_num);
             }
         }
         else if(sse_data->GetOperator(i)%2==0){ // There exists a diagonal operator
             // try remove
             if(AuthRemove()){
-#ifdef DEBUG_MODE
-                std::cout << "Diagonal Removal (operator " << i << ")" << std::endl;
-#endif // DEBUG_MODE
+                DEBUG_GEN("Diagonal Removal (operator " << i << ")" << std::endl);
                 sse_data->SetOperator(i,-1);
             }
         }
@@ -79,12 +75,12 @@ void MCStep::DiagUpdate(){
         }
     } // for over op_chain
 
-#ifdef DEBUG_MODE
-    std::cout << "After: ";
+#ifdef DEBUG_GEN_BLOCK
+    std::cerr << "After: ";
     sse_data->PrintOperators();
     sse_data->PrintSpins();
-    std::cout << std::endl;
-#endif //DEBUG_MODE
+    std::cerr << std::endl;
+#endif //DEBUG_GEN_BLOCK
 
 } // MCStep::DiagUpdate
 
@@ -107,9 +103,7 @@ void MCStep::LinkVertices(){
             int idx_spin_1(sse_data->GetOperator(i)/2);
             int idx_spin_2(sse_data->GetOperator(i)/2+1);
 
-#ifdef DEBUG_MODE
-            std::cout << "pos_oprtr=" << pos_oprtr << ", spins " << idx_spin_1 << " " << idx_spin_2 << std::endl;
-#endif //DEBUG_MODE
+            DEBUG_GEN("pos_oprtr=" << pos_oprtr << ", spins " << idx_spin_1 << " " << idx_spin_2 << std::endl);
 
             if(pos_last[idx_spin_1] != -1)
                 sse_data->LinkVertex(pos_last[idx_spin_1],pos_oprtr);
@@ -132,10 +126,10 @@ void MCStep::LinkVertices(){
             sse_data->LinkVertex(pos_first[i],pos_last[i]);
     }
 
-#ifdef DEBUG_MODE
+#ifdef DEBUG_GEN_BLOCK
     sse_data->PrintLinks();
-    std::cout << std::endl;
-#endif //DEBUG_MODE
+    std::cerr << std::endl;
+#endif //DEBUG_GEN_BLOCK
 }
 
 //! Diagonal insertion probability

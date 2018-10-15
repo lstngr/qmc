@@ -1,7 +1,6 @@
 #ifndef DEBUG_CONF
 #define DEBUG_CONF
-
-#include "debug_conf.hpp"
+#include "debugconf.hpp"
 #endif //DEBUG_CONF
 
 #ifndef SSEDATA
