@@ -184,3 +184,8 @@ void SSEData::LinkVertex(unsigned int vertex_0, unsigned int vertex_1){
     link_vertex[vertex_0] = vertex_1;
     link_vertex[vertex_1] = vertex_0;
 }
+
+//! Resets the link_vertex to -1
+void SSEData::ResetLinkVertex(){
+    link_vertex = std::vector<int>(4*num_time_slots,-1);
+}

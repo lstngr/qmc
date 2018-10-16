@@ -35,6 +35,7 @@ namespace qmc{
             void PrintSpins() const;
             void PrintLinks() const;
             unsigned int GetSpinNumber() const;
+            void ResetLinkVertex();
         protected:
 
         private:
