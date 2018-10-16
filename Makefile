@@ -16,5 +16,8 @@ mcstep.o: mcstep.cpp mcstep.hpp
 ssedata.o: ssedata.cpp ssedata.hpp
 	$(CXX) $(CXXFLAGS) -c ssedata.cpp -o $@
 
+lattice.o: lattice.cpp lattice.hpp
+	$(CXX) $(CXXFLAGS) -c lattice.cpp -o $@
+
 clean:
 	-rm -fr *.o *.gch qmc html/ latex/
