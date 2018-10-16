@@ -27,6 +27,7 @@ namespace qmc{
             virtual ~MCStep();
             void DiagUpdate();
             void LinkVertices();
+            void OperatorLoop(std::vector<int> const& pos_first);
             bool AuthInsert();
             bool AuthRemove();
             void SetBeta(double beta=10);

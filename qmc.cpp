@@ -7,10 +7,11 @@ int main(){
     qmc::MCStep engine(lattice);
     for (int i=0; i<19; i++){
         DEBUG_GEN("Sweep " << i << std::endl);
+        DEBUG_GEN("=========================");
         engine.DiagUpdate();
+        engine.LinkVertices();
     }
 
-    engine.LinkVertices();
     DEBUG_GEN("Ok" << std::endl);
     return 0;
 }

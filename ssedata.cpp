@@ -49,6 +49,19 @@ unsigned int SSEData::GetOperatorNumber(bool inserted) const{
     return oprtr.size() - empty_oprtr;
 }
 
+//! Returns the specified spin value
+//! \param idx_spin Index of the spin
+int SSEData::GetSpin(unsigned int idx_spin) const{
+    return spins[idx_spin];
+}
+
+//! Sets the specified spin to a given value
+//! \param idx_spin Index of the spin
+//! \param val_spin Value of the spin
+void SSEData::SetSpin(unsigned int idx_spin, int val_spin){
+    spins[idx_spin] = val_spin;
+}
+
 //! Get the value of an operator (type and position).
 /*!
  * Returns the s(p) = 2*b+a-1 value of the operator chain at a given
@@ -70,6 +83,35 @@ int SSEData::GetOperator(unsigned int idx_oprtr) const{
 void SSEData::SetOperator(unsigned int idx_oprtr, int val_oprtr){
     // Should implement index and value checks
     oprtr[idx_oprtr] = val_oprtr;
+}
+
+//! Returns a the link value at a given position
+/*!
+ * \param vertex Index of the link to fetch
+ */
+int SSEData::GetLink(unsigned int vertex) const {
+    return link_vertex[vertex];
+}
+
+//! Set a value in the linked vertex storage
+/*!
+ * Modifies a link at a given position in the link_vertex storage. This function
+ * is used when building operator loops and shouldn't be called otherwise.
+ * \param vertex Index of the vertex to modify
+ * \param val_vertex Value to assign
+ */
+void SSEData::SetLink(unsigned int vertex, int val_vertex) {
+    link_vertex[vertex] = val_vertex;
+}
+
+//! Returns the next element in an operator loop
+/*!
+ * Returns the index of the next element in a operator loop. Behavior unknown
+ * !!!
+ * \param vertex Index of the current vertex.
+ */
+int SSEData::GetLoopNeighbour(unsigned int vertex){
+    return link_vertex[vertex];
 }
 
 //! Returns two spins belonging to a given bond
@@ -139,4 +181,9 @@ void SSEData::LinkVertex(unsigned int vertex_0, unsigned int vertex_1){
     DEBUG_GEN("Linking " << vertex_0 << " and " << vertex_1 << std::endl);
     link_vertex[vertex_0] = vertex_1;
     link_vertex[vertex_1] = vertex_0;
+}
+
+//! Resets the link_vertex to -1
+void SSEData::ResetLinkVertex(){
+    link_vertex = std::vector<int>(4*num_time_slots,-1);
 }

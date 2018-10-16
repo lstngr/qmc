@@ -21,8 +21,13 @@ namespace qmc{
             SSEData(unsigned int time_slots, unsigned int spin_number, std::mt19937* rdm_engine);
             virtual ~SSEData();
             unsigned int GetOperatorNumber(bool inserted=true) const;
+            int GetSpin(unsigned int idx_spin) const;
+            void SetSpin(unsigned int idx_spin, int val_spin);
             int GetOperator(unsigned int idx_oprtr) const;
             void SetOperator(unsigned int idx_oprtr, int val_oprtr=-1);
+            int GetLink(unsigned int vertex) const;
+            void SetLink(unsigned int vertex, int val_vertex);
+            int GetLoopNeighbour(unsigned int vertex);
             void LinkVertex(unsigned int vertex_0, unsigned int vertex_1);
             std::vector<int> GetBondSpins(unsigned int num_bond) const;
             void FlipSpins(unsigned int num_bond);
@@ -30,6 +35,7 @@ namespace qmc{
             void PrintSpins() const;
             void PrintLinks() const;
             unsigned int GetSpinNumber() const;
+            void ResetLinkVertex();
         protected:
 
         private:

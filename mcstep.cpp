@@ -130,6 +130,69 @@ void MCStep::LinkVertices(){
     sse_data->PrintLinks();
     std::cerr << std::endl;
 #endif //DEBUG_GEN_BLOCK
+
+    this->OperatorLoop(pos_first);
+}
+
+//! Browses operator loops and flips them
+/*!
+ * This method follows the linked vertex list created through
+ * qmc::MCStep::LinkVertices to map operator loops. Occasionally, the spins
+ * along each loop will be flipped (which may in some case mean the associated
+ * operator type changes). Single spins define a loop on their own and might
+ * also be flipped with probability 1/2.
+ */
+void MCStep::OperatorLoop(std::vector<int> const& pos_first){
+    // First loop: Decides which oprtrs/spins to flip
+
+    DEBUG_GEN("Entering OperatorLoop" << std::endl << std::endl);
+
+    for (unsigned int idx_leg(0); idx_leg<4*sse_data->GetOperatorNumber(false); idx_leg+=2) {
+        // Needs to be int for while exit criterion
+        int idx_loop(idx_leg);
+        DEBUG_GEN("Just set idx_loop=" << idx_loop << std::endl);
+        if (sse_data->GetLink(idx_loop) >= 0) {
+            // Determine if loop will be flipped:
+            // -1 will not be, -2 will be,
+            // Note these happen with equal probabilities (see random_prob)
+            int val_loop(-1 - std::round(random_prob(rdm_engine)));
+            DEBUG_GEN("Initial idx_loop=" << idx_loop << " with val_loop=" << val_loop << std::endl);
+            do{
+                DEBUG_GEN("Set val_loop in " << sse_data->GetLink(idx_loop) << "/" << idx_loop << std::endl);
+                sse_data->SetLink(sse_data->GetLink(idx_loop),val_loop); // Sets 'previous' link to val_loop
+                sse_data->SetLink(idx_loop,val_loop); // Sets own since link no longer needed
+                sse_data->SetOperator(idx_loop/4, sse_data->GetOperator(idx_loop/4) ^ 1UL << 0); // Last bit flip to indicate diag<->off-diag
+                idx_loop ^= 1UL << 0; // Flip last bit (ie looks for same side neighboor)
+                DEBUG_GEN("Switch to neighbour idx_loop=" << idx_loop << std::endl);
+                idx_loop = sse_data->GetLink(idx_loop);
+                DEBUG_GEN("Goto next idx_loop=" << idx_loop << std::endl << std::endl);
+            } while (idx_loop >= 0);
+            // The loop exists when idx_loop points to a now modified location.
+        }
+    }
+
+    // Second loop: Flip spins that are tagged either -1 or -2 using pos_first
+    for (unsigned int idx_spin(0); idx_spin < pos_first.size(); idx_spin++) {
+        int val_vertex(0);
+        if (pos_first[idx_spin] != -1)
+            val_vertex = sse_data->GetLink(pos_first[idx_spin]);
+        else
+            val_vertex = -1;
+        if ((pos_first[idx_spin] == -1 && std::round(random_prob(rdm_engine))) || val_vertex == -2 ) {
+            // If spin is marked as single and with a 50% chance,
+            // OR if the attached vertex value mentions a flip,
+            // Flip the spin!
+            sse_data->SetSpin(idx_spin, -sse_data->GetSpin(idx_spin));
+        }
+    }
+
+#ifdef DEBUG_GEN_BLOCK
+    std::cerr << "After OperatorLoop: ";
+    sse_data->PrintOperators();
+    sse_data->PrintSpins();
+    std::cerr << std::endl;
+#endif //DEBUG_GEN_BLOCK
+
 }
 
 //! Diagonal insertion probability
