@@ -1,6 +1,6 @@
 CXX = g++
 CXXFLAGS = -g -O3
-OBJECTS = qmc.o mcstep.o ssedata.o
+OBJECTS = qmc.o mcstep.o ssedata.o lattice.o
 
 all: qmc
 

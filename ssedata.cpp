@@ -12,7 +12,6 @@ using namespace qmc;
 SSEData::SSEData(unsigned int time_slots, unsigned int spin_number, std::mt19937* rdm_engine)
     : num_time_slots(time_slots)
 {
-
     // Prepare random spin generation
     std::uniform_int_distribution<unsigned int> random_spin(0,1);
 
@@ -22,7 +21,6 @@ SSEData::SSEData(unsigned int time_slots, unsigned int spin_number, std::mt19937
 
     for(unsigned int idx_spin=0; idx_spin<spin_number; idx_spin++)
         spins[idx_spin] = 2*random_spin(*rdm_engine) - 1;
-
 }
 
 //! SSEData destructor

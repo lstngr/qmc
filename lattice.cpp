@@ -17,7 +17,7 @@ Lattice::Lattice(){
 ////////////////////////////
 
 // Lattice1D class constructor
-Lattice1D::Lattice1D(){
+Lattice1D::Lattice1D(unsigned int length): length(length){
 
 }
 
@@ -29,3 +29,14 @@ Lattice1D::Lattice1D(){
 std::vector<unsigned int> Lattice1D::GetSpinsIndex(unsigned int num_bond) const{
     return std::vector<unsigned int>{num_bond,num_bond+1};
 }
+
+//! Returns the number of spins in the system.
+unsigned int Lattice1D::GetSpinNumber() const{
+    return length;
+}
+
+//! Returns the number of operators in the system.
+unsigned int Lattice1D::GetBondNumber() const{
+    return length;
+}
+

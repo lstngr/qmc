@@ -18,7 +18,9 @@ namespace qmc{
         public:
             Lattice();
             virtual ~Lattice(){};
-            virtual std::vector<unsigned int> GetSpinsIndex(unsigned int num_bond) const=0;
+            virtual std::vector<unsigned int> GetSpinsIndex(unsigned int num_bond) const = 0;
+            virtual unsigned int GetSpinNumber() const = 0;
+            virtual unsigned int GetBondNumber() const = 0;
         protected:
         private:
 
@@ -30,11 +32,14 @@ namespace qmc{
      */
     class Lattice1D : public Lattice{
         public:
-            Lattice1D();
+            Lattice1D(unsigned int length);
             virtual ~Lattice1D(){};
             std::vector<unsigned int> GetSpinsIndex(unsigned int num_bond) const;
+            unsigned int GetSpinNumber() const;
+            unsigned int GetBondNumber() const;
         protected:
         private:
+            unsigned int length;
 
     };
 

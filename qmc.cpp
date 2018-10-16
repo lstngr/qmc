@@ -3,7 +3,8 @@
 
 int main(){
     // Declare system
-    qmc::MCStep engine;
+    qmc::Lattice1D lattice(6);
+    qmc::MCStep engine(lattice);
     for (int i=0; i<19; i++){
         DEBUG_GEN("Sweep " << i << std::endl);
         engine.DiagUpdate();

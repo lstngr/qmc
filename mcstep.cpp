@@ -7,13 +7,12 @@ using namespace qmc;
 /*!
  * This constructor currently uses a set of hard-coded values for simplicity.
  */
-MCStep::MCStep() : beta(10) {
+MCStep::MCStep(Lattice const& lattice) : lattice(lattice),beta(10) {
 
-    int spin_number = 6; // Numer of spin to simulate
+    int spin_number = this->lattice.GetSpinNumber();
     int op_str_length = 6; // Number of time slots
     rdm_engine = std::mt19937(1); // Seed is 0
     sse_data = new SSEData(op_str_length,spin_number,&rdm_engine);
-    //TODO Boundaries included?
     // Initialize number generators
     random_bond = std::uniform_int_distribution<unsigned int>(0,spin_number-1);
     random_prob = std::uniform_real_distribution<double>(0.0,1.0);
@@ -93,30 +92,31 @@ void MCStep::DiagUpdate(){
  */
 void MCStep::LinkVertices(){
 
-    std::vector<int> pos_last (sse_data->GetSpinNumber(),-1);
-    std::vector<int> pos_first(sse_data->GetSpinNumber(),-1);
+    std::vector<int> pos_last (lattice.GetSpinNumber(),-1);
+    std::vector<int> pos_first(lattice.GetSpinNumber(),-1);
 
     // Link operators from 0->L-1
     for(unsigned int i=0; i<sse_data->GetOperatorNumber(false); i++){
         if(sse_data->GetOperator(i) != -1){
             int pos_oprtr(4*i);
-            int idx_spin_1(sse_data->GetOperator(i)/2);
-            int idx_spin_2(sse_data->GetOperator(i)/2+1);
+            std::vector<unsigned int> idx_spin(lattice.GetSpinsIndex(
+                        sse_data->GetOperator(i)/2
+                        ));
 
-            DEBUG_GEN("pos_oprtr=" << pos_oprtr << ", spins " << idx_spin_1 << " " << idx_spin_2 << std::endl);
+            DEBUG_GEN("pos_oprtr=" << pos_oprtr << ", spins " << idx_spin[0] << " " << idx_spin[1] << std::endl);
 
-            if(pos_last[idx_spin_1] != -1)
-                sse_data->LinkVertex(pos_last[idx_spin_1],pos_oprtr);
+            if(pos_last[idx_spin[0]] != -1)
+                sse_data->LinkVertex(pos_last[idx_spin[0]],pos_oprtr);
             else
-                pos_first[idx_spin_1] = pos_oprtr;
+                pos_first[idx_spin[0]] = pos_oprtr;
 
-            if(pos_last[idx_spin_2] != -1)
-                sse_data->LinkVertex(pos_last[idx_spin_2],pos_oprtr+1);
+            if(pos_last[idx_spin[1]] != -1)
+                sse_data->LinkVertex(pos_last[idx_spin[1]],pos_oprtr+1);
             else
-                pos_first[idx_spin_2] = pos_oprtr + 1;
+                pos_first[idx_spin[1]] = pos_oprtr + 1;
 
-            pos_last[idx_spin_1] = pos_oprtr + 2;
-            pos_last[idx_spin_2] = pos_oprtr + 3;
+            pos_last[idx_spin[0]] = pos_oprtr + 2;
+            pos_last[idx_spin[1]] = pos_oprtr + 3;
         }
     }
 
@@ -138,7 +138,7 @@ void MCStep::LinkVertices(){
  * state of the system).
  */
 bool MCStep::AuthInsert() {
-    unsigned int num_bond(sse_data->GetSpinNumber());
+    unsigned int num_bond(lattice.GetBondNumber());
     double threshold_accept(std::min(beta*num_bond / (2.*(sse_data->GetOperatorNumber(false)-sse_data->GetOperatorNumber())),1.0));
 
     if(random_prob(rdm_engine) < threshold_accept)
@@ -152,7 +152,7 @@ bool MCStep::AuthInsert() {
  * state of the system).
  */
 bool MCStep::AuthRemove() {
-    unsigned int num_bond(sse_data->GetSpinNumber());
+    unsigned int num_bond(lattice.GetSpinNumber());
     double threshold_remove(std::min(2.0 * (sse_data->GetOperatorNumber(false)-sse_data->GetOperatorNumber()+1) / (beta*num_bond),1.0));
 
     if(random_prob(rdm_engine) < threshold_remove)
