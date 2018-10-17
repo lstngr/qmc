@@ -8,6 +8,7 @@
 #define MCSTEP
 
 #include "ssedata.hpp"
+#include "lattice.hpp"
 #include <vector>
 #include <random>
 
@@ -22,7 +23,7 @@ namespace qmc{
      */
     class MCStep{
         public:
-            MCStep();
+            MCStep(Lattice const& lattice);
             virtual ~MCStep();
             void DiagUpdate();
             void LinkVertices();
@@ -32,6 +33,7 @@ namespace qmc{
             void SetBeta(double beta=10);
         protected:
         private:
+            Lattice const& lattice;
             SSEData* sse_data; //!< Spin and operator state of the system
             double beta; //!< Thermodynamic Beta
             std::mt19937 rdm_engine; //!< Random number generator engine
