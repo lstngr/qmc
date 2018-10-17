@@ -10,11 +10,11 @@ using namespace qmc;
 MCStep::MCStep(Lattice const& lattice) : lattice(lattice),beta(10) {
 
     int spin_number = this->lattice.GetSpinNumber();
-    int op_str_length = 6; // Number of time slots
-    rdm_engine = std::mt19937(1); // Seed is 0
+    int op_str_length = 100; // Number of time slots
+    rdm_engine = std::mt19937(7); // Seed is 0
     sse_data = new SSEData(op_str_length,spin_number,&rdm_engine);
     // Initialize number generators
-    random_bond = std::uniform_int_distribution<unsigned int>(0,spin_number-1);
+    random_bond = std::uniform_int_distribution<unsigned int>(0,lattice.GetBondNumber()-1);
     random_prob = std::uniform_real_distribution<double>(0.0,1.0);
 }
 
@@ -143,10 +143,9 @@ void MCStep::LinkVertices(){
  * also be flipped with probability 1/2.
  */
 void MCStep::OperatorLoop(std::vector<int> const& pos_first){
-    // First loop: Decides which oprtrs/spins to flip
-
     DEBUG_GEN("Entering OperatorLoop" << std::endl << std::endl);
 
+    // First loop: Decides which oprtrs/spins to flip
     for (unsigned int idx_leg(0); idx_leg<4*sse_data->GetOperatorNumber(false); idx_leg+=2) {
         // Needs to be int for while exit criterion
         int idx_loop(idx_leg);

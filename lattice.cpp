@@ -27,7 +27,7 @@ Lattice1D::Lattice1D(unsigned int length): length(length){
  * \param num_bond Targeted bond index
  */
 std::vector<unsigned int> Lattice1D::GetSpinsIndex(unsigned int num_bond) const{
-    return std::vector<unsigned int>{num_bond,num_bond+1};
+    return std::vector<unsigned int>{num_bond,(num_bond+1)%GetBondNumber()};
 }
 
 //! Returns the number of spins in the system.
