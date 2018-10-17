@@ -10,7 +10,7 @@ using namespace qmc;
 MCStep::MCStep(Lattice const& lattice) : lattice(lattice),beta(10) {
 
     int spin_number = this->lattice.GetSpinNumber();
-    int op_str_length = 100; // Number of time slots
+    int op_str_length = 6; // Number of time slots
     rdm_engine = std::mt19937(7); // Seed is 0
     sse_data = new SSEData(op_str_length,spin_number,&rdm_engine);
     // Initialize number generators
@@ -92,6 +92,7 @@ void MCStep::DiagUpdate(){
  */
 void MCStep::LinkVertices(){
 
+    sse_data->ResetLinkVertex();
     std::vector<int> pos_last (lattice.GetSpinNumber(),-1);
     std::vector<int> pos_first(lattice.GetSpinNumber(),-1);
 

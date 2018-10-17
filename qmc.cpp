@@ -3,7 +3,7 @@
 
 int main(){
     // Declare system
-    qmc::Lattice1D lattice(20);
+    qmc::Lattice1D lattice(6);
     qmc::MCStep engine(lattice);
     for (int i=0; i<19; i++){
         DEBUG_GEN("Sweep " << i << std::endl);
