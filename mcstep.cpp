@@ -102,7 +102,7 @@ void MCStep::LinkVertices(){
         if(sse_data->GetOperator(i) != -1){
             int pos_oprtr(4*i);
             int idx_spin_1(sse_data->GetOperator(i)/2);
-            int idx_spin_2(sse_data->GetOperator(i)/2+1);
+            int idx_spin_2((sse_data->GetOperator(i)/2+1)%sse_data->GetSpinNumber());
 
             DEBUG_GEN("pos_oprtr=" << pos_oprtr << ", spins " << idx_spin_1 << " " << idx_spin_2 << std::endl);
 
