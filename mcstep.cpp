@@ -162,8 +162,11 @@ void MCStep::OperatorLoop(std::vector<int> const& pos_first){
                 DEBUG_GEN("Set val_loop in " << sse_data->GetLink(idx_loop) << "/" << idx_loop << std::endl);
                 sse_data->SetLink(sse_data->GetLink(idx_loop),val_loop); // Sets 'previous' link to val_loop
                 sse_data->SetLink(idx_loop,val_loop); // Sets own since link no longer needed
-                sse_data->SetOperator(idx_loop/4, sse_data->GetOperator(idx_loop/4) ^ 1UL << 0); // Last bit flip to indicate diag<->off-diag
-                idx_loop ^= 1UL << 0; // Flip last bit (ie looks for same side neighboor)
+                if (val_loop==-2) {
+                    DEBUG_GEN("Will set op:" << sse_data->GetOperator(idx_loop/4) << "->" << (sse_data->GetOperator(idx_loop/4)^1 << 0) << std::endl);
+                    sse_data->SetOperator(idx_loop/4, sse_data->GetOperator(idx_loop/4) ^ 1 << 0); // Last bit flip to indicate diag<->off-diag
+                }
+                idx_loop ^= 1U << 0; // Flip last bit (ie looks for same side neighboor)
                 DEBUG_GEN("Switch to neighbour idx_loop=" << idx_loop << std::endl);
                 idx_loop = sse_data->GetLink(idx_loop);
                 DEBUG_GEN("Goto next idx_loop=" << idx_loop << std::endl << std::endl);
