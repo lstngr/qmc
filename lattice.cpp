@@ -16,7 +16,12 @@ Lattice::Lattice(){
 // LATTICE1D ///////////////
 ////////////////////////////
 
-// Lattice1D class constructor
+//! Lattice1D class constructor
+/*!
+ * Instantiates a linear structure containing spins. This structure is cyclic
+ * (hence, the number of spins is also the number of bonds).
+ * \param length Length of the lattice, ie. the site number.
+ */
 Lattice1D::Lattice1D(unsigned int length): length(length){
 
 }

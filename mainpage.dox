@@ -1,0 +1,10 @@
+/*! \mainpage SLiQ-MoCS
+* SLiQ-MoCS (Simple Lightweight Monte-Carlo Simulator) aims to provide a direct
+* understandable approach to simulating spin systems and their interaction.
+* Throughout a variety of classes and their methods, one can run basic
+* simulation or extend them easily using the built-in polymorphism of the code.
+*
+* The later is heavily documented using Doxygen to avoid any misunderstanding in
+* code design, and provide the lambda user a simple solution to using the
+* program.
+*/
