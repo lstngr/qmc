@@ -7,14 +7,12 @@ using namespace qmc;
 /*!
  * This constructor currently uses a set of hard-coded values for simplicity.
  */
-MCStep::MCStep(Lattice const& lattice) : lattice(lattice),beta(10) {
+MCStep::MCStep(Lattice* const lattice) : lattice(lattice),beta(10),rdm_engine(std::mt19937(7)) {
 
-    int spin_number = this->lattice.GetSpinNumber();
     int op_str_length = 6; // Number of time slots
-    rdm_engine = std::mt19937(7); // Seed is 0
-    sse_data = new SSEData(op_str_length,spin_number,&rdm_engine);
+    sse_data = new SSEData(op_str_length,lattice,&rdm_engine);
     // Initialize number generators
-    random_bond = std::uniform_int_distribution<unsigned int>(0,lattice.GetBondNumber()-1);
+    random_bond = std::uniform_int_distribution<unsigned int>(0,lattice->GetBondNumber()-1);
     random_prob = std::uniform_real_distribution<double>(0.0,1.0);
 }
 
@@ -24,7 +22,7 @@ MCStep::MCStep(Lattice const& lattice) : lattice(lattice),beta(10) {
  * of the project.
  */
 MCStep::~MCStep(){
-    // Close random number generator
+    // Delete random number generator
     delete sse_data;
 }
 
@@ -35,6 +33,28 @@ MCStep::~MCStep(){
  */
 void MCStep::SetBeta(double beta){
     this->beta = beta;
+}
+
+//! Run a full Monte-Carlo Sweep
+/*!
+ * This function runs a full quantum Monte-Carlo sweep on the system, that is
+ * - A diagonal update (qmc::MCStep::DiagUpdate)
+ * - Vertex legs linkage (qmc::MCStep::LinkVertices)
+ * - Building operators loops and flipping them (qmc::MCStep::OperatorLoop)
+ *
+ * Due to the interdependence of these methods on each other, they are flagged
+ * as private and called sequentially by the present function.
+ *
+ * \param num_sweep How many sweep should be carried out
+ */
+void MCStep::Sweep(unsigned int num_sweep){
+    for(unsigned int idx_sweep(0); idx_sweep<num_sweep; idx_sweep++) {
+        DEBUG_GEN("Sweep " << idx_sweep << std::endl);
+        DEBUG_GEN("=========================");
+        DiagUpdate();
+        LinkVertices();
+        // OperatorLoop is implicitely called from LinkVertices.
+    }
 }
 
 //! Performs a diagonal update on the system
@@ -53,7 +73,7 @@ void MCStep::DiagUpdate(){
     // Iterate over all possible operator positions
     for(unsigned int i=0; i<sse_data->GetOperatorNumber(false); i++){
         if(sse_data->GetOperator(i)==-1){ // No operator here
-            unsigned int bond_num(random_bond(this->rdm_engine));
+            unsigned int bond_num(random_bond(rdm_engine));
             std::vector<int> random_bond_spins(sse_data->GetBondSpins(bond_num));
             if(random_bond_spins[0] != random_bond_spins[1] && AuthInsert()){
                 // Try insertion
@@ -93,14 +113,14 @@ void MCStep::DiagUpdate(){
 void MCStep::LinkVertices(){
 
     sse_data->ResetLinkVertex();
-    std::vector<int> pos_last (lattice.GetSpinNumber(),-1);
-    std::vector<int> pos_first(lattice.GetSpinNumber(),-1);
+    std::vector<int> pos_last (lattice->GetSpinNumber(),-1);
+    std::vector<int> pos_first(lattice->GetSpinNumber(),-1);
 
     // Link operators from 0->L-1
     for(unsigned int i=0; i<sse_data->GetOperatorNumber(false); i++){
         if(sse_data->GetOperator(i) != -1){
             int pos_oprtr(4*i);
-            std::vector<unsigned int> idx_spin(lattice.GetSpinsIndex(
+            std::vector<unsigned int> idx_spin(lattice->GetSpinsIndex(
                         sse_data->GetOperator(i)/2
                         ));
 
@@ -204,7 +224,7 @@ void MCStep::OperatorLoop(std::vector<int> const& pos_first){
  * state of the system).
  */
 bool MCStep::AuthInsert() {
-    unsigned int num_bond(lattice.GetBondNumber());
+    unsigned int num_bond(lattice->GetBondNumber());
     double threshold_accept(std::min(beta*num_bond / (2.*(sse_data->GetOperatorNumber(false)-sse_data->GetOperatorNumber())),1.0));
 
     if(random_prob(rdm_engine) < threshold_accept)
@@ -218,7 +238,7 @@ bool MCStep::AuthInsert() {
  * state of the system).
  */
 bool MCStep::AuthRemove() {
-    unsigned int num_bond(lattice.GetSpinNumber());
+    unsigned int num_bond(lattice->GetSpinNumber());
     double threshold_remove(std::min(2.0 * (sse_data->GetOperatorNumber(false)-sse_data->GetOperatorNumber()+1) / (beta*num_bond),1.0));
 
     if(random_prob(rdm_engine) < threshold_remove)

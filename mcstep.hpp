@@ -23,17 +23,21 @@ namespace qmc{
      */
     class MCStep{
         public:
-            MCStep(Lattice const& lattice);
+            MCStep(Lattice* const lattice);
             virtual ~MCStep();
-            void DiagUpdate();
-            void LinkVertices();
-            void OperatorLoop(std::vector<int> const& pos_first);
-            bool AuthInsert();
-            bool AuthRemove();
+            void Sweep(unsigned int num_sweep=1);
             void SetBeta(double beta=10);
         protected:
         private:
-            Lattice const& lattice; //!< Lattice structure of the system. Encloses the information needed for bond index to spin indexes.
+            void DiagUpdate();
+            void LinkVertices();
+            //// Should definitely be friended to SSEData
+            void OperatorLoop(std::vector<int> const& pos_first);
+            ////
+            bool AuthInsert();
+            bool AuthRemove();
+            
+            Lattice* const lattice; //!< Lattice structure of the system. Encloses the information needed for bond index to spin indexes.
             SSEData* sse_data; //!< Spin and operator state of the system
             double beta; //!< Thermodynamic Beta
             std::mt19937 rdm_engine; //!< Random number generator engine

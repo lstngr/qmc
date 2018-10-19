@@ -22,9 +22,7 @@ Lattice::Lattice(){
  * (hence, the number of spins is also the number of bonds).
  * \param length Length of the lattice, ie. the site number.
  */
-Lattice1D::Lattice1D(unsigned int length): length(length){
-
-}
+Lattice1D::Lattice1D(unsigned int length): length(length){}
 
 //! Returns spin indexes of a specific bond
 /*!

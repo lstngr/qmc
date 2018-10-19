@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <random>
+#include "lattice.hpp"
 
 namespace qmc{
 
@@ -18,16 +19,19 @@ namespace qmc{
      */
     class SSEData{
         public:
-            SSEData(unsigned int time_slots, unsigned int spin_number, std::mt19937* rdm_engine);
+            SSEData(unsigned int time_slots, Lattice* const lattice, std::mt19937* const rdm_engine);
             virtual ~SSEData();
             unsigned int GetOperatorNumber(bool inserted=true) const;
+            //// Could combine with FlipSpins
             int GetSpin(unsigned int idx_spin) const;
             void SetSpin(unsigned int idx_spin, int val_spin);
+            ////
             int GetOperator(unsigned int idx_oprtr) const;
+            //// Could maybe friend?
             void SetOperator(unsigned int idx_oprtr, int val_oprtr=-1);
+            ////
             int GetLink(unsigned int vertex) const;
             void SetLink(unsigned int vertex, int val_vertex);
-            int GetLoopNeighbour(unsigned int vertex);
             void LinkVertex(unsigned int vertex_0, unsigned int vertex_1);
             std::vector<int> GetBondSpins(unsigned int num_bond) const;
             void FlipSpins(unsigned int num_bond);
@@ -43,6 +47,7 @@ namespace qmc{
             std::vector<int> spins; //!< Spin state of the system (plus or minus ones in the Heisenberg 1/2 model)
             std::vector<int> oprtr; //!< Operator string. -1 indicates the identity operator
             std::vector<int> link_vertex; //!< Linked vertex storage of the configuration.
+            Lattice* const lattice;
 
     };
 

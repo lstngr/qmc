@@ -9,17 +9,17 @@ using namespace qmc;
  * This constructor will be called from qmc::MCStep::MCStep() when initializing
  * the simulation's storage.
  */
-SSEData::SSEData(unsigned int time_slots, unsigned int spin_number, std::mt19937* rdm_engine)
-    : num_time_slots(time_slots)
+SSEData::SSEData(unsigned int time_slots, Lattice* const lattice, std::mt19937* const rdm_engine)
+    : num_time_slots(time_slots), lattice(lattice)
 {
     // Prepare random spin generation
     std::uniform_int_distribution<unsigned int> random_spin(0,1);
 
-    spins = std::vector<int>(spin_number,0);
+    spins = std::vector<int>(lattice->GetSpinNumber(),0);
     oprtr = std::vector<int>(num_time_slots,-1);
     link_vertex = std::vector<int>(4*num_time_slots,-1);
 
-    for(unsigned int idx_spin=0; idx_spin<spin_number; idx_spin++)
+    for(unsigned int idx_spin=0; idx_spin<lattice->GetSpinNumber(); idx_spin++)
         spins[idx_spin] = 2*random_spin(*rdm_engine) - 1;
 }
 
@@ -104,16 +104,6 @@ void SSEData::SetLink(unsigned int vertex, int val_vertex) {
     link_vertex[vertex] = val_vertex;
 }
 
-//! Returns the next element in an operator loop
-/*!
- * Returns the index of the next element in a operator loop. Behavior unknown
- * !!!
- * \param vertex Index of the current vertex.
- */
-int SSEData::GetLoopNeighbour(unsigned int vertex){
-    return link_vertex[vertex];
-}
-
 //! Returns two spins belonging to a given bond
 /*!
  * Returns a two-elements vector containing the spin values of the given bond
@@ -135,8 +125,9 @@ std::vector<int> SSEData::GetBondSpins(unsigned int num_bond) const{
  * \param num_bond Index of the bond. Should be < than the number of spins.
  */
 void SSEData::FlipSpins(unsigned int num_bond){
-    spins[num_bond] *= -1;
-    spins[(num_bond+1)%this->spins.size()] *= -1;
+    std::vector<unsigned int> idx_spin(lattice->GetSpinsIndex(num_bond));
+    spins[idx_spin[0]] *= -1;
+    spins[idx_spin[1]] *= -1;
 }
 
 //! Prints operators for debbuging purposes
