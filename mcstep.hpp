@@ -33,6 +33,8 @@ namespace qmc{
             void LinkVertices();
             //// Should definitely be friended to SSEData
             void OperatorLoop(std::vector<int> const& pos_first);
+            void OperatorLoopSwenWang(std::vector<int> const& pos_first);
+            void OperatorLoopWolff(std::vector<int> const& pos_first);
             ////
             bool AuthInsert();
             bool AuthRemove();
@@ -40,9 +42,11 @@ namespace qmc{
             Lattice* const lattice; //!< Lattice structure of the system. Encloses the information needed for bond index to spin indexes.
             SSEData* sse_data; //!< Spin and operator state of the system
             double beta; //!< Thermodynamic Beta
+            std::string LoopMethod;
             std::mt19937 rdm_engine; //!< Random number generator engine
             std::uniform_int_distribution<unsigned int> random_bond; //!< Calls rdm_engine to generate random bonds
             std::uniform_real_distribution<double> random_prob; //!< Generates a random probability
+            std::uniform_int_distribution<unsigned int> random_leg;
 
     }; // class MCStep
 

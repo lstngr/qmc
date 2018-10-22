@@ -10,10 +10,12 @@ using namespace qmc;
 MCStep::MCStep(Lattice* const lattice) : lattice(lattice),beta(10),rdm_engine(std::mt19937(7)) {
 
     int op_str_length = 6; // Number of time slots
+    LoopMethod = "wolff";
     sse_data = new SSEData(op_str_length,lattice,&rdm_engine);
     // Initialize number generators
     random_bond = std::uniform_int_distribution<unsigned int>(0,lattice->GetBondNumber()-1);
     random_prob = std::uniform_real_distribution<double>(0.0,1.0);
+    random_leg = std::uniform_int_distribution<unsigned int>(0,4*op_str_length-1);
 }
 
 //! Class destructor
@@ -155,7 +157,20 @@ void MCStep::LinkVertices(){
     this->OperatorLoop(pos_first);
 }
 
-//! Browses operator loops and flips them
+//! Selects the pre-configured operator loop to use.
+/*!
+ * Possible operator loops are, currently:
+ * 1) Swendsen-Wang (qmc::MCStep::LoopMethod="swenwang")
+ * 2) Wolff (qmc::MCStep::LoopMethod="wolff")
+ */
+void MCStep::OperatorLoop(std::vector<int> const& pos_first) {
+    if(LoopMethod=="swenwang")
+        OperatorLoopSwenWang(pos_first);
+    else if (LoopMethod=="wolff")
+        OperatorLoopWolff(pos_first);
+}
+
+//! Browses operator loops and flips them (Swendsen-Wang Method)
 /*!
  * This method follows the linked vertex list created through
  * qmc::MCStep::LinkVertices to map operator loops. Occasionally, the spins
@@ -163,7 +178,7 @@ void MCStep::LinkVertices(){
  * operator type changes). Single spins define a loop on their own and might
  * also be flipped with probability 1/2.
  */
-void MCStep::OperatorLoop(std::vector<int> const& pos_first){
+void MCStep::OperatorLoopSwenWang(std::vector<int> const& pos_first){
     DEBUG_GEN("Entering OperatorLoop" << std::endl << std::endl);
 
     // First loop: Decides which oprtrs/spins to flip
@@ -207,6 +222,60 @@ void MCStep::OperatorLoop(std::vector<int> const& pos_first){
             // Flip the spin!
             sse_data->SetSpin(idx_spin, -sse_data->GetSpin(idx_spin));
         }
+    }
+
+#ifdef DEBUG_GEN_BLOCK
+    std::cerr << "After OperatorLoop: ";
+    sse_data->PrintOperators();
+    sse_data->PrintSpins();
+    std::cerr << std::endl;
+#endif //DEBUG_GEN_BLOCK
+
+}
+//! Browses operator loops and flips them (Wolff Method)
+/*!
+ * This method follows the linked vertex list created through
+ * qmc::MCStep::LinkVertices to map operator loops. Occasionally, the spins
+ * along each loop will be flipped (which may in some case mean the associated
+ * operator type changes). Single spins define a loop on their own and might
+ * also be flipped with probability 1/2.
+ */
+void MCStep::OperatorLoopWolff(std::vector<int> const& pos_first){
+    DEBUG_GEN("Entering OperatorLoop" << std::endl << std::endl);
+
+    unsigned int leg_counter(0); // Counts legs to exit following loops
+
+    // First loop: Flip loops
+    do {
+        // Needs to be int for while exit criterion
+        int idx_loop(random_leg(rdm_engine));
+        int idx_loop_start(idx_loop);
+        DEBUG_GEN("Start set idx_loop=" << idx_loop << std::endl);
+        if (sse_data->GetLink(idx_loop) >= 0) {
+            do{
+                sse_data->SetOperator(idx_loop/4, sse_data->GetOperator(idx_loop/4) ^ 1 << 0); // Last bit flip to indicate diag<->off-diag
+                DEBUG_GEN("Set oprtr " << (idx_loop/4) << " from " << (sse_data->GetOperator(idx_loop/4) ^ 1 << 0) << " to " << sse_data->GetOperator(idx_loop/4) << std::endl);
+                idx_loop ^= 1U << 0; // Flip last bit (ie looks for same side neighboor)
+                DEBUG_GEN("Switch to neighbour " << idx_loop << " and then link to " << sse_data->GetLink(idx_loop) << std::endl);
+                idx_loop = sse_data->GetLink(idx_loop);
+
+                // Check if flipped spins belong to pos_first
+                for(unsigned int idx_spin(0);idx_spin<pos_first.size();idx_spin++) {
+                    if (pos_first[idx_spin] == idx_loop || pos_first[idx_spin] == (idx_loop ^ 1 << 0))
+                        sse_data->SetSpin(idx_spin, -sse_data->GetSpin(idx_spin));
+                }
+
+                leg_counter++;
+            } while (idx_loop != idx_loop_start);
+            // The loop exists when idx_loop points to the start location.
+        }
+    } while(leg_counter < 4*sse_data->GetOperatorNumber(false));
+    // Stop when enough loops have been performed
+
+    // Second loop: Flip free spins
+    for (unsigned int idx_spin(0); idx_spin < pos_first.size(); idx_spin++) {
+        if (pos_first[idx_spin] == -1)
+            sse_data->SetSpin(idx_spin, -sse_data->GetSpin(idx_spin));
     }
 
 #ifdef DEBUG_GEN_BLOCK
