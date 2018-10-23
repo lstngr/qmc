@@ -29,17 +29,20 @@ namespace qmc{
             int GetOperator(unsigned int idx_oprtr) const;
             //// Could maybe friend?
             void SetOperator(unsigned int idx_oprtr, int val_oprtr=-1);
+            void FlipOperator(unsigned int idx_oprtr);
             ////
             int GetLink(unsigned int vertex) const;
             void SetLink(unsigned int vertex, int val_vertex);
             void LinkVertex(unsigned int vertex_0, unsigned int vertex_1);
             std::vector<int> GetBondSpins(unsigned int num_bond) const;
             void FlipSpins(unsigned int num_bond);
+            void FlipSpin(unsigned int idx_spin);
             void PrintOperators() const;
             void PrintSpins() const;
             void PrintLinks() const;
             unsigned int GetSpinNumber() const;
             void ResetLinkVertex();
+            int SwitchAndReverse(int idx_leg) const;
         protected:
 
         private:

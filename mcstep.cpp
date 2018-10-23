@@ -198,11 +198,10 @@ void MCStep::OperatorLoopSwenWang(std::vector<int> const& pos_first){
                 sse_data->SetLink(idx_loop,val_loop); // Sets own since link no longer needed
                 if (val_loop==-2) {
                     DEBUG_GEN("Will set op:" << sse_data->GetOperator(idx_loop/4) << "->" << (sse_data->GetOperator(idx_loop/4)^1 << 0) << std::endl);
-                    sse_data->SetOperator(idx_loop/4, sse_data->GetOperator(idx_loop/4) ^ 1 << 0); // Last bit flip to indicate diag<->off-diag
+                    sse_data->FlipOperator(idx_loop/4); // Last bit flip to indicate diag<->off-diag
                 }
-                idx_loop ^= 1U << 0; // Flip last bit (ie looks for same side neighboor)
-                DEBUG_GEN("Switch to neighbour idx_loop=" << idx_loop << std::endl);
-                idx_loop = sse_data->GetLink(idx_loop);
+                DEBUG_GEN("Switch to neighbour idx_loop=" << (idx_loop ^ 1 << 0) << std::endl);
+                idx_loop = sse_data->SwitchAndReverse(idx_loop);
                 DEBUG_GEN("Goto next idx_loop=" << idx_loop << std::endl << std::endl);
             } while (idx_loop >= 0);
             // The loop exists when idx_loop points to a now modified location.
@@ -220,7 +219,7 @@ void MCStep::OperatorLoopSwenWang(std::vector<int> const& pos_first){
             // If spin is marked as single and with a 50% chance,
             // OR if the attached vertex value mentions a flip,
             // Flip the spin!
-            sse_data->SetSpin(idx_spin, -sse_data->GetSpin(idx_spin));
+            sse_data->FlipSpin(idx_spin);
         }
     }
 
@@ -253,18 +252,24 @@ void MCStep::OperatorLoopWolff(std::vector<int> const& pos_first){
         DEBUG_GEN("Start set idx_loop=" << idx_loop << std::endl);
         if (sse_data->GetLink(idx_loop) >= 0) {
             do{
-                sse_data->SetOperator(idx_loop/4, sse_data->GetOperator(idx_loop/4) ^ 1 << 0); // Last bit flip to indicate diag<->off-diag
+                sse_data->FlipOperator(idx_loop/4);
                 DEBUG_GEN("Set oprtr " << (idx_loop/4) << " from " << (sse_data->GetOperator(idx_loop/4) ^ 1 << 0) << " to " << sse_data->GetOperator(idx_loop/4) << std::endl);
-                idx_loop ^= 1U << 0; // Flip last bit (ie looks for same side neighboor)
-                DEBUG_GEN("Switch to neighbour " << idx_loop << " and then link to " << sse_data->GetLink(idx_loop) << std::endl);
-                idx_loop = sse_data->GetLink(idx_loop);
+                DEBUG_GEN("Switch to neighbour " << (idx_loop ^ 1 << 0) << " and then link to " << sse_data->GetLink(idx_loop ^ 1 << 0) << std::endl);
+                idx_loop = sse_data->SwitchAndReverse(idx_loop);
 
                 // Check if flipped spins belong to pos_first
-                for(unsigned int idx_spin(0);idx_spin<pos_first.size();idx_spin++) {
-                    if (pos_first[idx_spin] == idx_loop || pos_first[idx_spin] == (idx_loop ^ 1 << 0))
-                        sse_data->SetSpin(idx_spin, -sse_data->GetSpin(idx_spin));
+                std::vector<unsigned int> idx_spins(LegToSpins(idx_loop));
+                DEBUG_GEN("Got bond spins " << idx_spins[0] << " " << idx_spins[1] << std::endl);
+                if (pos_first[idx_spins[0]] == idx_loop || pos_first[idx_spins[0]] == (idx_loop ^ 1 << 0)) {
+                    sse_data->FlipSpin(idx_spins[0]);
+                    // DEBUG_GEN("Flip spin (idx " << idx_spins[0] << ")." << std::endl);
+                }
+                if (pos_first[idx_spins[1]] == idx_loop || pos_first[idx_spins[1]] == (idx_loop ^ 1 << 0)) {
+                    // DEBUG_GEN("Flip spin (idx " << idx_spins[1] << ")." << std::endl);
+                    sse_data->FlipSpin(idx_spins[1]);
                 }
 
+                // Update leg counter
                 leg_counter++;
             } while (idx_loop != idx_loop_start);
             // The loop exists when idx_loop points to the start location.
@@ -275,7 +280,7 @@ void MCStep::OperatorLoopWolff(std::vector<int> const& pos_first){
     // Second loop: Flip free spins
     for (unsigned int idx_spin(0); idx_spin < pos_first.size(); idx_spin++) {
         if (pos_first[idx_spin] == -1)
-            sse_data->SetSpin(idx_spin, -sse_data->GetSpin(idx_spin));
+            sse_data->FlipSpin(idx_spin);
     }
 
 #ifdef DEBUG_GEN_BLOCK
@@ -313,4 +318,17 @@ bool MCStep::AuthRemove() {
     if(random_prob(rdm_engine) < threshold_remove)
         return true;
     return false;
+}
+
+//! Gets the spin indexes of a leg and its neighbour
+/*!
+ * This function relies on a chain conversion from leg to operator, to bond and
+ * finally to spin indexes. The first two ae implicitely defined in the
+ * program's storage architecture, the last relies on Lattice::GetBondSpins.
+ */
+std::vector<unsigned int> MCStep::LegToSpins(unsigned int idx_leg) const {
+    int idx_oprtr(idx_leg/4);
+    int idx_bond(sse_data->GetOperator(idx_oprtr)/2);
+    std::vector<unsigned int> idx_spins(lattice->GetSpinsIndex(idx_bond));
+    return idx_spins;
 }

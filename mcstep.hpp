@@ -38,6 +38,7 @@ namespace qmc{
             ////
             bool AuthInsert();
             bool AuthRemove();
+            std::vector<unsigned int> LegToSpins(unsigned int idx_leg) const;
             
             Lattice* const lattice; //!< Lattice structure of the system. Encloses the information needed for bond index to spin indexes.
             SSEData* sse_data; //!< Spin and operator state of the system

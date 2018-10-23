@@ -85,6 +85,16 @@ void SSEData::SetOperator(unsigned int idx_oprtr, int val_oprtr){
     oprtr[idx_oprtr] = val_oprtr;
 }
 
+//! Switches the operator type at idx_oprtr
+/*!
+ * Carries out the conversion diagonal<->off-diagonal for the operator at the
+ * given index.
+ * \param idx_operator
+ */
+void SSEData::FlipOperator(unsigned int idx_oprtr) {
+    SetOperator(idx_oprtr, GetOperator(idx_oprtr) ^ 1U << 0);
+}
+
 //! Returns a the link value at a given position
 /*!
  * \param vertex Index of the link to fetch
@@ -116,6 +126,14 @@ std::vector<int> SSEData::GetBondSpins(unsigned int num_bond) const{
     spins[1] = this->spins[(num_bond+1)%this->spins.size()];
 
     return spins;
+}
+
+//! Flips the spin attached to the given index
+/*!
+ * \param idx_spin Index of the bond. Should be < than
+ */
+void SSEData::FlipSpin(unsigned int idx_spin){
+    spins[idx_spin] *= -1;
 }
 
 //! Flips the spins in a given bond
@@ -177,4 +195,15 @@ void SSEData::LinkVertex(unsigned int vertex_0, unsigned int vertex_1){
 //! Resets the link_vertex to -1
 void SSEData::ResetLinkVertex(){
     link_vertex = std::vector<int>(4*num_time_slots,-1);
+}
+
+//! Returns the next leg index for a SW&R procedure
+/*!
+ * The procedure of such an algorithm is to look up the neighbour spin (using a
+ * bitflip to save CPU and memory), and then query its linked counterpart via
+ * SSEData::GetLink().
+ * \param idx_leg Index of the leg to start from.
+ */
+int SSEData::SwitchAndReverse(int idx_leg) const {
+    return GetLink(idx_leg ^ 1 << 0);
 }
