@@ -43,6 +43,7 @@ namespace qmc{
             unsigned int GetSpinNumber() const;
             void ResetLinkVertex();
             int SwitchAndReverse(int idx_leg) const;
+            void Equilibrate(double expansion_factor);
         protected:
 
         private:

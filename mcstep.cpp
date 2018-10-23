@@ -7,7 +7,7 @@ using namespace qmc;
 /*!
  * This constructor currently uses a set of hard-coded values for simplicity.
  */
-MCStep::MCStep(Lattice* const lattice) : lattice(lattice),beta(10),rdm_engine(std::mt19937(7)) {
+MCStep::MCStep(Lattice* const lattice) : lattice(lattice),beta(10), expansion_factor(0.4),rdm_engine(std::mt19937(7)) {
 
     int op_str_length = 6; // Number of time slots
     LoopMethod = "wolff";
@@ -56,6 +56,7 @@ void MCStep::Sweep(unsigned int num_sweep){
         DiagUpdate();
         LinkVertices();
         // OperatorLoop is implicitely called from LinkVertices.
+        sse_data->Equilibrate(expansion_factor);
     }
 }
 
@@ -96,7 +97,7 @@ void MCStep::DiagUpdate(){
         }
     } // for over op_chain
 
-#if LOG_LEVEL > 1 
+#if LOG_LEVEL > 1
     std::cerr << "After: ";
     sse_data->PrintOperators();
     sse_data->PrintSpins();
@@ -149,7 +150,7 @@ void MCStep::LinkVertices(){
             sse_data->LinkVertex(pos_first[i],pos_last[i]);
     }
 
-#if LOG_LEVEL > 1
+#if LOG_LEVEL > 2
     sse_data->PrintLinks();
     std::cerr << std::endl;
 #endif // LOG_LEVEL > 1

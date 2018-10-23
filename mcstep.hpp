@@ -43,6 +43,7 @@ namespace qmc{
             Lattice* const lattice; //!< Lattice structure of the system. Encloses the information needed for bond index to spin indexes.
             SSEData* sse_data; //!< Spin and operator state of the system
             double beta; //!< Thermodynamic Beta
+            double expansion_factor; //!< Controls the operator length
             std::string LoopMethod; /*!< Stores the OperatorLoop method to use.
                                       In its current state, the program supports:
                                       - "swenwang": Swendsen-Wang Algorithm

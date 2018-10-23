@@ -150,6 +150,7 @@ void SSEData::FlipSpins(unsigned int num_bond){
 
 //! Prints operators for debbuging purposes
 void SSEData::PrintOperators() const{
+    std::cout << "(" << GetOperatorNumber(false) << ") ";
     for(auto&& val_oprtr : oprtr)
         std::cout << val_oprtr << " ";
     std::cout << std::endl;
@@ -206,4 +207,22 @@ void SSEData::ResetLinkVertex(){
  */
 int SSEData::SwitchAndReverse(int idx_leg) const {
     return GetLink(idx_leg ^ 1 << 0);
+}
+
+//! Expands the operator time slots until the system equilibriates
+/*!
+ * Controls the expansion of the oprtr vector. The expansion factor is obtained
+ * from MCStep.
+ * \param expansion_factor Sets the minimum size of the lattice to L=(1+a)*n
+ * where a is the discussed parameter.
+ */
+void SSEData::Equilibrate(double expansion_factor) {
+    double thres_oprtr((1+expansion_factor) * GetOperatorNumber());
+    if (num_time_slots < thres_oprtr) {
+        // The system isn't large enough, expand it by adding unity operators.
+        int delta_oprtr(std::ceil(thres_oprtr-num_time_slots));
+        num_time_slots += delta_oprtr;
+        std::vector<int> new_slots(delta_oprtr,0);
+        oprtr.insert(oprtr.end(),new_slots.begin(),new_slots.end());
+    }
 }
