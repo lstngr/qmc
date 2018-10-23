@@ -7,6 +7,6 @@ int main(){
     qmc::MCStep engine(&lattice);
     engine.Sweep(3);
 
-    DEBUG_GEN("Ok" << std::endl);
+    LOG(3,"Ok" << std::endl);
     return 0;
 }

@@ -1,10 +1,12 @@
-#define DEBUG_MODE
+#define LOG_LEVEL 2
+/*
+ * Choose a log-level
+ *-1 -> None
+ * 0 -> Error
+ * 1 -> Warning
+ * 2 -> Info
+ * 3 -> More info
+ * 4 -> MOAR INFO
+ */
 
-#ifdef DEBUG_MODE
-#define DEBUG_GEN(x) do { std::cerr << x; } while (0)
-#define DEBUG_GEN_BLOCK
-
-#else
-#define DEBUG_GEN(x)
-
-#endif //DEBUG_MODE
+#define LOG(lvl,x) if(lvl<=LOG_LEVEL){ std::cerr << x; }

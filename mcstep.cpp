@@ -51,8 +51,8 @@ void MCStep::SetBeta(double beta){
  */
 void MCStep::Sweep(unsigned int num_sweep){
     for(unsigned int idx_sweep(0); idx_sweep<num_sweep; idx_sweep++) {
-        DEBUG_GEN("Sweep " << idx_sweep << std::endl);
-        DEBUG_GEN("=========================");
+        LOG(2,"Sweep " << idx_sweep << std::endl);
+        LOG(2,"=========================");
         DiagUpdate();
         LinkVertices();
         // OperatorLoop is implicitely called from LinkVertices.
@@ -66,11 +66,11 @@ void MCStep::Sweep(unsigned int num_sweep){
  */
 void MCStep::DiagUpdate(){
 
-#ifdef DEBUG_GEN_BLOCK
+#if LOG_LEVEL > 1
     std::cerr << "Before: " << std::endl;
     sse_data->PrintOperators();
     sse_data->PrintSpins();
-#endif //DEBUG_GEN_BLOCK
+#endif // LOG_LEVEL > 1
 
     // Iterate over all possible operator positions
     for(unsigned int i=0; i<sse_data->GetOperatorNumber(false); i++){
@@ -79,14 +79,14 @@ void MCStep::DiagUpdate(){
             std::vector<int> random_bond_spins(sse_data->GetBondSpins(bond_num));
             if(random_bond_spins[0] != random_bond_spins[1] && AuthInsert()){
                 // Try insertion
-                DEBUG_GEN("Diagonal Insertion (bond " << bond_num << ", spins " << random_bond_spins[0] << " " << random_bond_spins[1] << ")" << std::endl);
+                LOG(3,"Diagonal Insertion (bond " << bond_num << ", spins " << random_bond_spins[0] << " " << random_bond_spins[1] << ")" << std::endl);
                 sse_data->SetOperator(i, 2 * bond_num);
             }
         }
         else if(sse_data->GetOperator(i)%2==0){ // There exists a diagonal operator
             // try remove
             if(AuthRemove()){
-                DEBUG_GEN("Diagonal Removal (operator " << i << ")" << std::endl);
+                LOG(3,"Diagonal Removal (operator " << i << ")" << std::endl);
                 sse_data->SetOperator(i,-1);
             }
         }
@@ -96,12 +96,12 @@ void MCStep::DiagUpdate(){
         }
     } // for over op_chain
 
-#ifdef DEBUG_GEN_BLOCK
+#if LOG_LEVEL > 1 
     std::cerr << "After: ";
     sse_data->PrintOperators();
     sse_data->PrintSpins();
     std::cerr << std::endl;
-#endif //DEBUG_GEN_BLOCK
+#endif // LOG_LEVEL > 1
 
 } // MCStep::DiagUpdate
 
@@ -126,7 +126,7 @@ void MCStep::LinkVertices(){
                         sse_data->GetOperator(i)/2
                         ));
 
-            DEBUG_GEN("pos_oprtr=" << pos_oprtr << ", spins " << idx_spin[0] << " " << idx_spin[1] << std::endl);
+            LOG(4,"pos_oprtr=" << pos_oprtr << ", spins " << idx_spin[0] << " " << idx_spin[1] << std::endl);
 
             if(pos_last[idx_spin[0]] != -1)
                 sse_data->LinkVertex(pos_last[idx_spin[0]],pos_oprtr);
@@ -149,10 +149,10 @@ void MCStep::LinkVertices(){
             sse_data->LinkVertex(pos_first[i],pos_last[i]);
     }
 
-#ifdef DEBUG_GEN_BLOCK
+#if LOG_LEVEL > 1
     sse_data->PrintLinks();
     std::cerr << std::endl;
-#endif //DEBUG_GEN_BLOCK
+#endif // LOG_LEVEL > 1
 
     this->OperatorLoop(pos_first);
 }
@@ -179,30 +179,30 @@ void MCStep::OperatorLoop(std::vector<int> const& pos_first) {
  * also be flipped with probability 1/2.
  */
 void MCStep::OperatorLoopSwenWang(std::vector<int> const& pos_first){
-    DEBUG_GEN("Entering OperatorLoop" << std::endl << std::endl);
+    LOG(2,"Entering OperatorLoop" << std::endl << std::endl);
 
     // First loop: Decides which oprtrs/spins to flip
     for (unsigned int idx_leg(0); idx_leg<4*sse_data->GetOperatorNumber(false); idx_leg+=2) {
         // Needs to be int for while exit criterion
         int idx_loop(idx_leg);
-        DEBUG_GEN("Just set idx_loop=" << idx_loop << std::endl);
+        LOG(4,"Just set idx_loop=" << idx_loop << std::endl);
         if (sse_data->GetLink(idx_loop) >= 0) {
             // Determine if loop will be flipped:
             // -1 will not be, -2 will be,
             // Note these happen with equal probabilities (see random_prob)
             int val_loop(-1 - std::round(random_prob(rdm_engine)));
-            DEBUG_GEN("Initial idx_loop=" << idx_loop << " with val_loop=" << val_loop << std::endl);
+            LOG(3,"Initial idx_loop=" << idx_loop << " with val_loop=" << val_loop << std::endl);
             do{
-                DEBUG_GEN("Set val_loop in " << sse_data->GetLink(idx_loop) << "/" << idx_loop << std::endl);
+                LOG(3,"Set val_loop in " << sse_data->GetLink(idx_loop) << "/" << idx_loop << std::endl);
                 sse_data->SetLink(sse_data->GetLink(idx_loop),val_loop); // Sets 'previous' link to val_loop
                 sse_data->SetLink(idx_loop,val_loop); // Sets own since link no longer needed
                 if (val_loop==-2) {
-                    DEBUG_GEN("Will set op:" << sse_data->GetOperator(idx_loop/4) << "->" << (sse_data->GetOperator(idx_loop/4)^1 << 0) << std::endl);
+                    LOG(3,"Will set op:" << sse_data->GetOperator(idx_loop/4) << "->" << (sse_data->GetOperator(idx_loop/4)^1 << 0) << std::endl);
                     sse_data->FlipOperator(idx_loop/4); // Last bit flip to indicate diag<->off-diag
                 }
-                DEBUG_GEN("Switch to neighbour idx_loop=" << (idx_loop ^ 1 << 0) << std::endl);
+                LOG(3,"Switch to neighbour idx_loop=" << (idx_loop ^ 1 << 0) << std::endl);
                 idx_loop = sse_data->SwitchAndReverse(idx_loop);
-                DEBUG_GEN("Goto next idx_loop=" << idx_loop << std::endl << std::endl);
+                LOG(3,"Goto next idx_loop=" << idx_loop << std::endl << std::endl);
             } while (idx_loop >= 0);
             // The loop exists when idx_loop points to a now modified location.
         }
@@ -223,12 +223,12 @@ void MCStep::OperatorLoopSwenWang(std::vector<int> const& pos_first){
         }
     }
 
-#ifdef DEBUG_GEN_BLOCK
+#if LOG_LEVEL > 1
     std::cerr << "After OperatorLoop: ";
     sse_data->PrintOperators();
     sse_data->PrintSpins();
     std::cerr << std::endl;
-#endif //DEBUG_GEN_BLOCK
+#endif // LOG_LEVEL > 1
 
 }
 //! Browses operator loops and flips them (Wolff Method)
@@ -240,7 +240,7 @@ void MCStep::OperatorLoopSwenWang(std::vector<int> const& pos_first){
  * also be flipped with probability 1/2.
  */
 void MCStep::OperatorLoopWolff(std::vector<int> const& pos_first){
-    DEBUG_GEN("Entering OperatorLoop" << std::endl << std::endl);
+    LOG(2,"Entering OperatorLoop" << std::endl << std::endl);
 
     unsigned int leg_counter(0); // Counts legs to exit following loops
 
@@ -249,23 +249,23 @@ void MCStep::OperatorLoopWolff(std::vector<int> const& pos_first){
         // Needs to be int for while exit criterion
         int idx_loop(random_leg(rdm_engine));
         int idx_loop_start(idx_loop);
-        DEBUG_GEN("Start set idx_loop=" << idx_loop << std::endl);
+        LOG(3,"Start set idx_loop=" << idx_loop << std::endl);
         if (sse_data->GetLink(idx_loop) >= 0) {
             do{
                 sse_data->FlipOperator(idx_loop/4);
-                DEBUG_GEN("Set oprtr " << (idx_loop/4) << " from " << (sse_data->GetOperator(idx_loop/4) ^ 1 << 0) << " to " << sse_data->GetOperator(idx_loop/4) << std::endl);
-                DEBUG_GEN("Switch to neighbour " << (idx_loop ^ 1 << 0) << " and then link to " << sse_data->GetLink(idx_loop ^ 1 << 0) << std::endl);
+                LOG(3,"Set oprtr " << (idx_loop/4) << " from " << (sse_data->GetOperator(idx_loop/4) ^ 1 << 0) << " to " << sse_data->GetOperator(idx_loop/4) << std::endl);
+                LOG(3,"Switch to neighbour " << (idx_loop ^ 1 << 0) << " and then link to " << sse_data->GetLink(idx_loop ^ 1 << 0) << std::endl);
                 idx_loop = sse_data->SwitchAndReverse(idx_loop);
 
                 // Check if flipped spins belong to pos_first
                 std::vector<unsigned int> idx_spins(LegToSpins(idx_loop));
-                DEBUG_GEN("Got bond spins " << idx_spins[0] << " " << idx_spins[1] << std::endl);
+                LOG(4,"Got bond spins " << idx_spins[0] << " " << idx_spins[1] << std::endl);
                 if (pos_first[idx_spins[0]] == idx_loop || pos_first[idx_spins[0]] == (idx_loop ^ 1 << 0)) {
                     sse_data->FlipSpin(idx_spins[0]);
-                    // DEBUG_GEN("Flip spin (idx " << idx_spins[0] << ")." << std::endl);
+                    LOG(4,"Flip spin (idx " << idx_spins[0] << ")." << std::endl);
                 }
                 if (pos_first[idx_spins[1]] == idx_loop || pos_first[idx_spins[1]] == (idx_loop ^ 1 << 0)) {
-                    // DEBUG_GEN("Flip spin (idx " << idx_spins[1] << ")." << std::endl);
+                    LOG(4,"Flip spin (idx " << idx_spins[1] << ")." << std::endl);
                     sse_data->FlipSpin(idx_spins[1]);
                 }
 
@@ -283,12 +283,12 @@ void MCStep::OperatorLoopWolff(std::vector<int> const& pos_first){
             sse_data->FlipSpin(idx_spin);
     }
 
-#ifdef DEBUG_GEN_BLOCK
+#if LOG_LEVEL > 1
     std::cerr << "After OperatorLoop: ";
     sse_data->PrintOperators();
     sse_data->PrintSpins();
     std::cerr << std::endl;
-#endif //DEBUG_GEN_BLOCK
+#endif // LOG_LEVEL > 1
 
 }
 

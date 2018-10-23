@@ -187,7 +187,7 @@ unsigned int SSEData::GetSpinNumber() const{
  * \param vertex_1 Some other vertex index of the same form!
  */
 void SSEData::LinkVertex(unsigned int vertex_0, unsigned int vertex_1){
-    DEBUG_GEN("Linking " << vertex_0 << " and " << vertex_1 << std::endl);
+    LOG(4,"Linking " << vertex_0 << " and " << vertex_1 << std::endl);
     link_vertex[vertex_0] = vertex_1;
     link_vertex[vertex_1] = vertex_0;
 }
