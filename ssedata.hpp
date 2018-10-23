@@ -50,7 +50,7 @@ namespace qmc{
             std::vector<int> spins; //!< Spin state of the system (plus or minus ones in the Heisenberg 1/2 model)
             std::vector<int> oprtr; //!< Operator string. -1 indicates the identity operator
             std::vector<int> link_vertex; //!< Linked vertex storage of the configuration.
-            Lattice* const lattice;
+            Lattice* const lattice; /*!< Lattice obtained from the qmc::MCStep constructor. The initialization is left to the user.*/
 
     };
 

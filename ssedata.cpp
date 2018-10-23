@@ -89,7 +89,7 @@ void SSEData::SetOperator(unsigned int idx_oprtr, int val_oprtr){
 /*!
  * Carries out the conversion diagonal<->off-diagonal for the operator at the
  * given index.
- * \param idx_operator
+ * \param idx_oprtr
  */
 void SSEData::FlipOperator(unsigned int idx_oprtr) {
     SetOperator(idx_oprtr, GetOperator(idx_oprtr) ^ 1U << 0);

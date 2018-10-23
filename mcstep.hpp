@@ -43,11 +43,14 @@ namespace qmc{
             Lattice* const lattice; //!< Lattice structure of the system. Encloses the information needed for bond index to spin indexes.
             SSEData* sse_data; //!< Spin and operator state of the system
             double beta; //!< Thermodynamic Beta
-            std::string LoopMethod;
+            std::string LoopMethod; /*!< Stores the OperatorLoop method to use.
+            In its current state, the program supports:
+            - "swenwang": Swendsen-Wang Algorithm
+            - "wolff": Wolff Algorithm (default)*/
             std::mt19937 rdm_engine; //!< Random number generator engine
             std::uniform_int_distribution<unsigned int> random_bond; //!< Calls rdm_engine to generate random bonds
             std::uniform_real_distribution<double> random_prob; //!< Generates a random probability
-            std::uniform_int_distribution<unsigned int> random_leg;
+            std::uniform_int_distribution<unsigned int> random_leg; //!< Generates a random bond index (for qmc::MCStep::OperatorLoopWolff)
 
     }; // class MCStep
 
