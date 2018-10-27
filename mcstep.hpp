@@ -1,16 +1,11 @@
-#ifndef DEBUG_CONF
-#define DEBUG_CONF
+#ifndef QMC_MCSTEP_HPP_
+#define QMC_MCSTEP_HPP_
 
-#include "debugconf.hpp"
-#endif //DEBUG_CONF
-
-#ifndef MCSTEP
-#define MCSTEP
-
-#include "ssedata.hpp"
-#include "lattice.hpp"
 #include <vector>
 #include <random>
+#include "debugconf.hpp"
+#include "lattice.hpp"
+#include "ssedata.hpp"
 
 namespace qmc{
 
@@ -57,4 +52,4 @@ namespace qmc{
 
 } // namespace qmc
 
-#endif // define MCSTEP
+#endif // define QMC_MCSTEP_HPP_

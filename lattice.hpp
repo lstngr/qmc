@@ -1,5 +1,5 @@
-#ifndef LATTICE_HPP_
-#define LATTICE_HPP_
+#ifndef QMC_LATTICE_HPP_
+#define QMC_LATTICE_HPP_
 
 #include <vector>
 
@@ -70,5 +70,5 @@ namespace qmc{
 
 }
 
-#endif // LATTICE_HPP_
+#endif // QMC_LATTICE_HPP_
 

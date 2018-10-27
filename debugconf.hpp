@@ -1,3 +1,6 @@
+#ifndef QMC_DEBUG_ENGINE_HPP_
+#define QMC_DEBUG_ENGINE_HPP_
+
 #define LOG_LEVEL 2
 /*
  * Choose a log-level
@@ -10,3 +13,5 @@
  */
 
 #define LOG(lvl,x) if(lvl<=LOG_LEVEL){ std::cerr << x; }
+
+#endif //QMC_DEBUG_ENGINE_HPP_
