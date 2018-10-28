@@ -56,7 +56,7 @@ namespace qmc{
             std::uniform_int_distribution<unsigned int> random_bond; //!< Calls rdm_engine to generate random bonds
             std::uniform_real_distribution<double> random_prob; //!< Generates a random probability
             std::uniform_int_distribution<unsigned int> random_leg; //!< Generates a random bond index (for qmc::MCStep::OperatorLoopWolff)
-            std::vector<Observable*> observables_;
+            std::vector<Observable*> observables_; /*!< Contains pointers to user defined observables. They will be updated for every sweep, so that the user can request their values through the appropriate method afterwards.*/
 
     }; // class MCStep
 
