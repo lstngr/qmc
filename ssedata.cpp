@@ -222,7 +222,7 @@ void SSEData::Equilibrate(double expansion_factor) {
         // The system isn't large enough, expand it by adding unity operators.
         int delta_oprtr(std::ceil(thres_oprtr-num_time_slots));
         num_time_slots += delta_oprtr;
-        std::vector<int> new_slots(delta_oprtr,0);
+        std::vector<int> new_slots(delta_oprtr,-1);
         oprtr.insert(oprtr.end(),new_slots.begin(),new_slots.end());
     }
 }

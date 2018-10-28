@@ -7,7 +7,7 @@ using namespace qmc;
 /*!
  * This constructor currently uses a set of hard-coded values for simplicity.
  */
-MCStep::MCStep(Lattice* const lattice) : lattice(lattice),beta(10), expansion_factor(0.4),rdm_engine(std::mt19937(7)) {
+MCStep::MCStep(Lattice* const lattice) : lattice(lattice),beta(100), expansion_factor(0.4),rdm_engine(std::mt19937(7)) {
 
     int op_str_length = 6; // Number of time slots
     LoopMethod = "wolff";
@@ -16,6 +16,8 @@ MCStep::MCStep(Lattice* const lattice) : lattice(lattice),beta(10), expansion_fa
     random_bond = std::uniform_int_distribution<unsigned int>(0,lattice->GetBondNumber()-1);
     random_prob = std::uniform_real_distribution<double>(0.0,1.0);
     random_leg = std::uniform_int_distribution<unsigned int>(0,4*op_str_length-1);
+
+    observables_ = std::vector<Observable*>();
 }
 
 //! Class destructor
@@ -32,9 +34,24 @@ MCStep::~MCStep(){
 /*!
  * Sets the thermodynamic Beta parameter. Can be called at anytime, but
  * specifically by the class constructor.
+ * \param beta The value of the thermodynamic parameter.
  */
 void MCStep::SetBeta(double beta){
     this->beta = beta;
+}
+
+//! Get Beta parameter
+/*!
+ * Returns the set thermodynamic beta.
+ */
+double MCStep::GetBeta() const { return beta; }
+
+/*! \brief Adds an observable to the system
+ *  Pushes back an observable. Nothing more.
+ *  \param obsrv Pointer to the mentionned observable.
+ */
+void MCStep::AddObservable(Observable* obsrv) {
+    observables_.push_back(obsrv);
 }
 
 //! Run a full Monte-Carlo Sweep
@@ -52,11 +69,13 @@ void MCStep::SetBeta(double beta){
 void MCStep::Sweep(unsigned int num_sweep){
     for(unsigned int idx_sweep(0); idx_sweep<num_sweep; idx_sweep++) {
         LOG(2,"Sweep " << idx_sweep << std::endl);
-        LOG(2,"=========================");
+        LOG(2,"=========================" << std::endl);
         DiagUpdate();
         LinkVertices();
         // OperatorLoop is implicitely called from LinkVertices.
         sse_data->Equilibrate(expansion_factor);
+        random_leg = std::uniform_int_distribution<unsigned int>(0,4*sse_data->GetOperatorNumber(false)-1);
+        UpdateObservables();
     }
 }
 
@@ -98,7 +117,7 @@ void MCStep::DiagUpdate(){
     } // for over op_chain
 
 #if LOG_LEVEL > 1
-    std::cerr << "After: ";
+    std::cerr << "After: " << std::endl;
     sse_data->PrintOperators();
     sse_data->PrintSpins();
     std::cerr << std::endl;
@@ -332,4 +351,14 @@ std::vector<unsigned int> MCStep::LegToSpins(unsigned int idx_leg) const {
     int idx_bond(sse_data->GetOperator(idx_oprtr)/2);
     std::vector<unsigned int> idx_spins(lattice->GetSpinsIndex(idx_bond));
     return idx_spins;
+}
+
+/*! \brief Updates observable states
+ * Calls every observable's update function, so they store relevant informations
+ * for their final value.
+ */
+void MCStep::UpdateObservables() const {
+    for(auto obsrv : observables_) {
+        obsrv->UpdateObservable(sse_data);
+    }
 }

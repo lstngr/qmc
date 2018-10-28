@@ -7,10 +7,11 @@
 #ifndef MCSTEP
 #define MCSTEP
 
-#include "ssedata.hpp"
-#include "lattice.hpp"
 #include <vector>
 #include <random>
+#include "ssedata.hpp"
+#include "lattice.hpp"
+#include "observable.hpp"
 
 namespace qmc{
 
@@ -27,6 +28,8 @@ namespace qmc{
             virtual ~MCStep();
             void Sweep(unsigned int num_sweep=1);
             void SetBeta(double beta=10);
+            void AddObservable(Observable* obsrv);
+            double GetBeta() const;
         protected:
         private:
             void DiagUpdate();
@@ -39,6 +42,7 @@ namespace qmc{
             bool AuthInsert();
             bool AuthRemove();
             std::vector<unsigned int> LegToSpins(unsigned int idx_leg) const;
+            void UpdateObservables() const;
 
             Lattice* const lattice; //!< Lattice structure of the system. Encloses the information needed for bond index to spin indexes.
             SSEData* sse_data; //!< Spin and operator state of the system
@@ -52,6 +56,7 @@ namespace qmc{
             std::uniform_int_distribution<unsigned int> random_bond; //!< Calls rdm_engine to generate random bonds
             std::uniform_real_distribution<double> random_prob; //!< Generates a random probability
             std::uniform_int_distribution<unsigned int> random_leg; //!< Generates a random bond index (for qmc::MCStep::OperatorLoopWolff)
+            std::vector<Observable*> observables_;
 
     }; // class MCStep
 

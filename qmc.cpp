@@ -5,8 +5,11 @@ int main(){
     // Declare system
     qmc::Lattice1D lattice(8);
     qmc::MCStep engine(&lattice);
-    engine.Sweep(60);
+    qmc::ObservableHamilton energy(engine.GetBeta());
+    engine.AddObservable(&energy);
+    engine.Sweep(10000);
 
+    std::cout << "Energy is: " << energy.Measure() << std::endl;
     LOG(3,"Ok" << std::endl);
     return 0;
 }
