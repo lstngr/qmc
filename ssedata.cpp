@@ -8,6 +8,9 @@ using namespace qmc;
 /*!
  * This constructor will be called from qmc::MCStep::MCStep() when initializing
  * the simulation's storage.
+ * \param time_slots Initial number of time slots to create
+ * \param lattice Pointer to the user's lattice, passed by qmc::MCStep::MCStep
+ * \param rdm_engine Pointer to random number generator, shared with qmc::MCStep
  */
 SSEData::SSEData(unsigned int time_slots, Lattice* const lattice, std::mt19937* const rdm_engine)
     : num_time_slots(time_slots), lattice(lattice)
@@ -36,6 +39,7 @@ SSEData::~SSEData(){}
  * Returns the number of operators in the system. Can return either the number
  * of currently inserted operators, or the maximum number of operators allowed.
  * \param inserted If true, the maximum number of operators is returned.
+ * \return The number of (inserted) operators in the system.
  */
 unsigned int SSEData::GetOperatorNumber(bool inserted) const{
     if(not inserted)
@@ -52,6 +56,7 @@ unsigned int SSEData::GetOperatorNumber(bool inserted) const{
 
 //! Returns the specified spin value
 //! \param idx_spin Index of the spin
+//! \return Spin value at index idx_spin
 int SSEData::GetSpin(unsigned int idx_spin) const{
     return spins[idx_spin];
 }
@@ -68,6 +73,7 @@ void SSEData::SetSpin(unsigned int idx_spin, int val_spin){
  * Returns the s(p) = 2*b+a-1 value of the operator chain at a given
  * location (time slot).
  * \param idx_oprtr Time slot index where the operator lives.
+ * \return Value of the operator at position idx_oprtr.
  */
 int SSEData::GetOperator(unsigned int idx_oprtr) const{
     // Should implement index checks to avoid segmentation faults.
@@ -99,6 +105,7 @@ void SSEData::FlipOperator(unsigned int idx_oprtr) {
 //! Returns a the link value at a given position
 /*!
  * \param vertex Index of the link to fetch
+ * \return Value of the link at vertex index.
  */
 int SSEData::GetLink(unsigned int vertex) const {
     return link_vertex[vertex];
@@ -120,6 +127,8 @@ void SSEData::SetLink(unsigned int vertex, int val_vertex) {
  * Returns a two-elements vector containing the spin values of the given bond
  * index.
  * \param num_bond Number of the bond. Should be < than the number of spins.
+ * \return Vector containing the values of the spins linked by the bond with
+ * index num_bond.
  */
 std::vector<int> SSEData::GetBondSpins(unsigned int num_bond) const{
     std::vector<int> spins(2,0);
@@ -178,6 +187,7 @@ void SSEData::PrintLinks() const{
 }
 
 //! Returns current number of spins
+//! \return Number of spins
 unsigned int SSEData::GetSpinNumber() const{
     return spins.size();
 }
@@ -205,6 +215,7 @@ void SSEData::ResetLinkVertex(){
  * bitflip to save CPU and memory), and then query its linked counterpart via
  * SSEData::GetLink().
  * \param idx_leg Index of the leg to start from.
+ * \return Index of the leg after a SWR procedure.
  */
 int SSEData::SwitchAndReverse(int idx_leg) const {
     return GetLink(idx_leg ^ 1 << 0);

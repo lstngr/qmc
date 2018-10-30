@@ -12,8 +12,10 @@ namespace qmc{
         public:
             Observable(){};
             virtual ~Observable(){};
-            virtual void UpdateObservable(SSEData* const sim_data)=0; /*!< Updates the attributes of the observable after each sweep. */
-            virtual double Measure() const = 0; /*!< Returns the average value of the observable.*/
+            virtual void UpdateObservable(SSEData* const sim_data)=0; /*!< Updates the attributes of the observable after each sweep.
+            \param sim_data Pointer to a simulation container. Allows access to simulation data.*/
+            virtual double Measure() const = 0; /*!< Returns the average value of the observable.
+            \return The average value of the observable*/
             virtual void ClearObservable()=0; /*!< Clears any stored variables to free space up for a new measurement.*/
     };
     

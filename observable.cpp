@@ -26,6 +26,7 @@ void ObservableHamilton::UpdateObservable(SSEData* const sim_data) {
 /*! \brief Returns the energy of the system.
  * This method averages all values stored in num_oprtr_ and returns the
  * average energy of the system.
+ * \return The average value of the Hamiltonian
  */
 double ObservableHamilton::Measure() const {
     double energy = - std::accumulate(num_oprtr_.begin(),

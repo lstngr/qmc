@@ -29,6 +29,7 @@ namespace qmc{
              * belonging to the specified bond is returned. This function is
              * adapted polymorphically according to the lattice type.
              * \param num_bond Index of the bond
+             * \return Vector containing spin indexes connected by num_bond
              */
             virtual std::vector<unsigned int> GetSpinsIndex(unsigned int num_bond) const = 0;
 
@@ -37,6 +38,7 @@ namespace qmc{
              * Returns the number of spins (or sites) enclosed in the Lattice
              * structure. This function is adapted polymorphically according to
              * the lattice type.
+             * \return Number of spins
              */
             virtual unsigned int GetSpinNumber() const = 0;
 
@@ -45,6 +47,7 @@ namespace qmc{
              * Returns the number of bonds (linking sites) enclosed in the
              * Lattice structure. This function is adapted polymorphically
              * according to the lattice type.
+             * \return Number of bonds between spins.
              */
             virtual unsigned int GetBondNumber() const = 0;
         protected:

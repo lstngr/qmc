@@ -6,6 +6,7 @@ using namespace qmc;
 //! MCStep constructor
 /*!
  * This constructor currently uses a set of hard-coded values for simplicity.
+ * \param lattice Pointer to the  lattice chosen by the user.
  */
 MCStep::MCStep(Lattice* const lattice) : lattice(lattice),beta(20), expansion_factor(0.2),rdm_engine(std::mt19937(5)) {
 
@@ -43,6 +44,7 @@ void MCStep::SetBeta(double beta){
 //! Get Beta parameter
 /*!
  * Returns the set thermodynamic beta.
+ * \return Inverse temperature
  */
 double MCStep::GetBeta() const { return beta; }
 
@@ -184,6 +186,8 @@ void MCStep::LinkVertices(){
  * Possible operator loops are, currently:
  * 1) Swendsen-Wang (qmc::MCStep::LoopMethod="swenwang")
  * 2) Wolff (qmc::MCStep::LoopMethod="wolff")
+ * \param pos_first Vector containing the leg index where a spin is first used.
+ * \param all_links_empty Indicates no operators are inserted.
  */
 void MCStep::OperatorLoop(std::vector<int> const& pos_first, bool all_links_empty) {
     if(LoopMethod=="swenwang")
@@ -199,6 +203,7 @@ void MCStep::OperatorLoop(std::vector<int> const& pos_first, bool all_links_empt
  * along each loop will be flipped (which may in some case mean the associated
  * operator type changes). Single spins define a loop on their own and might
  * also be flipped with probability 1/2.
+ * \param pos_first Vector containing the leg index where a spin is first used.
  */
 void MCStep::OperatorLoopSwenWang(std::vector<int> const& pos_first){
     LOG(2,"Entering OperatorLoop" << std::endl << std::endl);
@@ -260,6 +265,8 @@ void MCStep::OperatorLoopSwenWang(std::vector<int> const& pos_first){
  * along each loop will be flipped (which may in some case mean the associated
  * operator type changes). Single spins define a loop on their own and might
  * also be flipped with probability 1/2.
+ * \param pos_first Vector containing the leg index where a spin is first used.
+ * \param all_links_empty Indicates no operators are inserted.
  */
 void MCStep::OperatorLoopWolff(std::vector<int> const& pos_first, bool all_links_empty){
     LOG(2,"Entering OperatorLoop" << std::endl << std::endl);
@@ -320,6 +327,7 @@ void MCStep::OperatorLoopWolff(std::vector<int> const& pos_first, bool all_links
 /*!
  * Computes the probability of inserting a diagonal operator (from the current
  * state of the system).
+ * \return Boolean allowing (or not) a insertion
  */
 bool MCStep::AuthInsert() {
     unsigned int num_bond(lattice->GetBondNumber());
@@ -334,6 +342,7 @@ bool MCStep::AuthInsert() {
 /*!
  * Computes the probability of removing a diagonal operator (from the current
  * state of the system).
+ * \return Boolean allowing (or not) a removal
  */
 bool MCStep::AuthRemove() {
     unsigned int num_bond(lattice->GetBondNumber());
@@ -349,6 +358,8 @@ bool MCStep::AuthRemove() {
  * This function relies on a chain conversion from leg to operator, to bond and
  * finally to spin indexes. The first two ae implicitely defined in the
  * program's storage architecture, the last relies on Lattice::GetBondSpins.
+ * \param idx_leg Index of the leg
+ * \return The index of the spins attached to the operator using idx_leg
  */
 std::vector<unsigned int> MCStep::LegToSpins(unsigned int idx_leg) const {
     int idx_oprtr(idx_leg/4);

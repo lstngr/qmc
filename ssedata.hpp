@@ -43,7 +43,7 @@ namespace qmc{
             void ResetLinkVertex();
             void Equilibrate(double expansion_factor);
 
-            friend class MCStep; //< Forward declaration of qmc::MCStep. This allows moving most methods of SSEData to private, while retaining access from qmc::MCStep.
+            friend class MCStep; //!< Forward declaration of qmc::MCStep. This allows moving most methods of SSEData to private, while retaining access from qmc::MCStep.
             int num_time_slots; //!< Number of time slots to place operators
             std::vector<int> spins; //!< Spin state of the system (plus or minus ones in the Heisenberg 1/2 model)
             std::vector<int> oprtr; //!< Operator string. -1 indicates the identity operator
