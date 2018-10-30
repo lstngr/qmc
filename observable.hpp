@@ -6,6 +6,7 @@
 namespace qmc{
 
     /*! \brief Pure virtual class to instantiate OOP Observables
+     *
      * Lays the core mechanics of a physical observable.
      */
     class Observable{
@@ -20,6 +21,7 @@ namespace qmc{
     };
     
     /*! \brief Hamiltonian Observable
+     *
      * This observable evaluates the energy of the system. It stores
      * intermediate measurements locally, these require memory space increasing
      * linearly with the number of sweeps. The energy is computed as:

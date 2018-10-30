@@ -184,8 +184,8 @@ void MCStep::LinkVertices(){
 //! Selects the pre-configured operator loop to use.
 /*!
  * Possible operator loops are, currently:
- * 1) Swendsen-Wang (qmc::MCStep::LoopMethod="swenwang")
- * 2) Wolff (qmc::MCStep::LoopMethod="wolff")
+ * 1. Swendsen-Wang (qmc::MCStep::LoopMethod="swenwang")
+ * 2. Wolff (qmc::MCStep::LoopMethod="wolff")
  * \param pos_first Vector containing the leg index where a spin is first used.
  * \param all_links_empty Indicates no operators are inserted.
  */

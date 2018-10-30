@@ -14,6 +14,7 @@ ObservableHamilton::ObservableHamilton(double beta): beta_(beta){
 
 /*! \brief Updates the number of operators stored in
  * qmc::ObservableHamilton::num_oprtr_.
+ *
  *  Pushes back the currently inserted operator number gotten from
  *  qmc::SSEData. These will be averaged on demand by
  *  qmc::ObservableHamilton::Measure.
@@ -24,6 +25,7 @@ void ObservableHamilton::UpdateObservable(SSEData* const sim_data) {
 }
 
 /*! \brief Returns the energy of the system.
+ *
  * This method averages all values stored in num_oprtr_ and returns the
  * average energy of the system.
  * \return The average value of the Hamiltonian
@@ -35,6 +37,7 @@ double ObservableHamilton::Measure() const {
 }
 
 /* \brief Removes memorized state from the class attributes
+ *
  *  It frees a bunch of memory and allows new measures (~uncorrelated) to be
  *  made.
  */
