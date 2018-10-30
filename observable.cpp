@@ -33,3 +33,10 @@ double ObservableHamilton::Measure() const {
     return energy;
 }
 
+/* \brief Removes memorized state from the class attributes
+ *  It frees a bunch of memory and allows new measures (~uncorrelated) to be
+ *  made.
+ */
+void ObservableHamilton::ClearObservable() {
+    num_oprtr_.clear();
+}

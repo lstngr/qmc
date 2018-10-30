@@ -14,6 +14,7 @@ namespace qmc{
             virtual ~Observable(){};
             virtual void UpdateObservable(SSEData* const sim_data)=0; /*!< Updates the attributes of the observable after each sweep. */
             virtual double Measure() const = 0; /*!< Returns the average value of the observable.*/
+            virtual void ClearObservable()=0; /*!< Clears any stored variables to free space up for a new measurement.*/
     };
     
     /*! \brief Hamiltonian Observable
@@ -32,6 +33,7 @@ namespace qmc{
             virtual ~ObservableHamilton(){};
             virtual void UpdateObservable(SSEData* const sim_data);
             virtual double Measure() const;
+            virtual void ClearObservable();
         protected:
             std::vector<size_t> num_oprtr_; /*!<Stores the number of inserted operators for every iteration.*/
             double beta_; /*!< Inverse temperature of the system. It is set at class instantiation.*/
