@@ -1,6 +1,6 @@
 CXX = g++
-CXXFLAGS = -g -O3
-OBJECTS = qmc.o mcstep.o ssedata.o lattice.o
+CXXFLAGS = -g -O0
+OBJECTS = qmc.o mcstep.o ssedata.o lattice.o observable.o
 
 all: qmc
 
@@ -18,6 +18,9 @@ ssedata.o: ssedata.cpp ssedata.hpp
 
 lattice.o: lattice.cpp lattice.hpp
 	$(CXX) $(CXXFLAGS) -c lattice.cpp -o $@
+
+observable.o: observable.cpp observable.hpp
+	$(CXX) $(CXXFLAGS) -c observable.cpp -o $@
 
 clean:
 	-rm -fr *.o *.gch qmc html/ latex/
