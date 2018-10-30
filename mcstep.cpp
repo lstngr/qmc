@@ -7,7 +7,7 @@ using namespace qmc;
 /*!
  * This constructor currently uses a set of hard-coded values for simplicity.
  */
-MCStep::MCStep(Lattice* const lattice) : lattice(lattice),beta(100), expansion_factor(0.4),rdm_engine(std::mt19937(7)) {
+MCStep::MCStep(Lattice* const lattice) : lattice(lattice),beta(20), expansion_factor(0.2),rdm_engine(std::mt19937(5)) {
 
     int op_str_length = 6; // Number of time slots
     LoopMethod = "wolff";
@@ -93,11 +93,11 @@ void MCStep::DiagUpdate(){
 #endif // LOG_LEVEL > 1
 
     // Iterate over all possible operator positions
-    for(unsigned int i=0; i<sse_data->GetOperatorNumber(false); i++){
+    for(size_t i=0; i<sse_data->GetOperatorNumber(false); i++){
         if(sse_data->GetOperator(i)==-1){ // No operator here
             unsigned int bond_num(random_bond(rdm_engine));
             std::vector<int> random_bond_spins(sse_data->GetBondSpins(bond_num));
-            if(random_bond_spins[0] != random_bond_spins[1] && AuthInsert()){
+            if((random_bond_spins[0] != random_bond_spins[1]) && AuthInsert()){
                 // Try insertion
                 LOG(3,"Diagonal Insertion (bond " << bond_num << ", spins " << random_bond_spins[0] << " " << random_bond_spins[1] << ")" << std::endl);
                 sse_data->SetOperator(i, 2 * bond_num);
@@ -269,7 +269,7 @@ void MCStep::OperatorLoopWolff(std::vector<int> const& pos_first){
         // Needs to be int for while exit criterion
         int idx_loop(random_leg(rdm_engine));
         int idx_loop_start(idx_loop);
-        LOG(3,"Start set idx_loop=" << idx_loop << std::endl);
+        LOG(4,"Start set idx_loop=" << idx_loop << std::endl);
         if (sse_data->GetLink(idx_loop) >= 0) {
             do{
                 sse_data->FlipOperator(idx_loop/4);
@@ -332,8 +332,8 @@ bool MCStep::AuthInsert() {
  * state of the system).
  */
 bool MCStep::AuthRemove() {
-    unsigned int num_bond(lattice->GetSpinNumber());
-    double threshold_remove(std::min(2.0 * (sse_data->GetOperatorNumber(false)-sse_data->GetOperatorNumber()+1) / (beta*num_bond),1.0));
+    unsigned int num_bond(lattice->GetBondNumber());
+    double threshold_remove(std::min(2.0 * (sse_data->GetOperatorNumber(false)-sse_data->GetOperatorNumber()+1.) / (beta*num_bond),1.0));
 
     if(random_prob(rdm_engine) < threshold_remove)
         return true;

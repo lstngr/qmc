@@ -1,4 +1,4 @@
-#define LOG_LEVEL 2
+#define LOG_LEVEL 1
 /*
  * Choose a log-level
  *-1 -> None

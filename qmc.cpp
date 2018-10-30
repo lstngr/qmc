@@ -3,11 +3,11 @@
 
 int main(){
     // Declare system
-    qmc::Lattice1D lattice(8);
+    qmc::Lattice1D lattice(2);
     qmc::MCStep engine(&lattice);
     qmc::ObservableHamilton energy(engine.GetBeta());
     engine.AddObservable(&energy);
-    engine.Sweep(10000);
+    engine.Sweep(7500);
 
     std::cout << "Energy is: " << energy.Measure() << std::endl;
     LOG(3,"Ok" << std::endl);

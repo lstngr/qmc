@@ -19,6 +19,7 @@ SSEData::SSEData(unsigned int time_slots, Lattice* const lattice, std::mt19937* 
     oprtr = std::vector<int>(num_time_slots,-1);
     link_vertex = std::vector<int>(4*num_time_slots,-1);
 
+//    spins = std::vector<int>{1,-1};
     for(unsigned int idx_spin=0; idx_spin<lattice->GetSpinNumber(); idx_spin++)
         spins[idx_spin] = 2*random_spin(*rdm_engine) - 1;
 }

@@ -28,7 +28,7 @@ void ObservableHamilton::UpdateObservable(SSEData* const sim_data) {
  * average energy of the system.
  */
 double ObservableHamilton::Measure() const {
-    double energy = - std::accumulate(num_oprtr_.begin(), 
+    double energy = - std::accumulate(num_oprtr_.begin(),
             num_oprtr_.end(), 0.0) / num_oprtr_.size() / beta_;
     return energy;
 }
