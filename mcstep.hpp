@@ -32,9 +32,9 @@ namespace qmc{
             void DiagUpdate();
             void LinkVertices();
             //// Should definitely be friended to SSEData
-            void OperatorLoop(std::vector<int> const& pos_first);
+            void OperatorLoop(std::vector<int> const& pos_first, bool all_links_empty=false);
             void OperatorLoopSwenWang(std::vector<int> const& pos_first);
-            void OperatorLoopWolff(std::vector<int> const& pos_first);
+            void OperatorLoopWolff(std::vector<int> const& pos_first, bool all_links_empty=false);
             ////
             bool AuthInsert();
             bool AuthRemove();

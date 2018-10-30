@@ -3,7 +3,7 @@
 
 int main(){
     // Declare system
-    qmc::Lattice1D lattice(8);
+    qmc::Lattice1D lattice(2);
     qmc::MCStep engine(&lattice);
     engine.Sweep(60);
 

@@ -118,10 +118,12 @@ void MCStep::LinkVertices(){
     sse_data->ResetLinkVertex();
     std::vector<int> pos_last (lattice->GetSpinNumber(),-1);
     std::vector<int> pos_first(lattice->GetSpinNumber(),-1);
+    bool all_links_empty(true);
 
     // Link operators from 0->L-1
     for(unsigned int i=0; i<sse_data->GetOperatorNumber(false); i++){
         if(sse_data->GetOperator(i) != -1){
+            all_links_empty = false;
             int pos_oprtr(4*i);
             std::vector<unsigned int> idx_spin(lattice->GetSpinsIndex(
                         sse_data->GetOperator(i)/2
@@ -155,7 +157,7 @@ void MCStep::LinkVertices(){
     std::cerr << std::endl;
 #endif // LOG_LEVEL > 1
 
-    this->OperatorLoop(pos_first);
+    this->OperatorLoop(pos_first,all_links_empty);
 }
 
 //! Selects the pre-configured operator loop to use.
@@ -164,11 +166,11 @@ void MCStep::LinkVertices(){
  * 1) Swendsen-Wang (qmc::MCStep::LoopMethod="swenwang")
  * 2) Wolff (qmc::MCStep::LoopMethod="wolff")
  */
-void MCStep::OperatorLoop(std::vector<int> const& pos_first) {
+void MCStep::OperatorLoop(std::vector<int> const& pos_first, bool all_links_empty) {
     if(LoopMethod=="swenwang")
         OperatorLoopSwenWang(pos_first);
     else if (LoopMethod=="wolff")
-        OperatorLoopWolff(pos_first);
+        OperatorLoopWolff(pos_first,all_links_empty);
 }
 
 //! Browses operator loops and flips them (Swendsen-Wang Method)
@@ -240,47 +242,49 @@ void MCStep::OperatorLoopSwenWang(std::vector<int> const& pos_first){
  * operator type changes). Single spins define a loop on their own and might
  * also be flipped with probability 1/2.
  */
-void MCStep::OperatorLoopWolff(std::vector<int> const& pos_first){
+void MCStep::OperatorLoopWolff(std::vector<int> const& pos_first, bool all_links_empty){
     LOG(2,"Entering OperatorLoop" << std::endl << std::endl);
 
     unsigned int leg_counter(0); // Counts legs to exit following loops
 
-    // First loop: Flip loops
-    do {
-        // Needs to be int for while exit criterion
-        int idx_loop(random_leg(rdm_engine));
-        int idx_loop_start(idx_loop);
-        LOG(3,"Start set idx_loop=" << idx_loop << std::endl);
-        if (sse_data->GetLink(idx_loop) >= 0) {
-            do{
-                sse_data->FlipOperator(idx_loop/4);
-                LOG(3,"Set oprtr " << (idx_loop/4) << " from " << (sse_data->GetOperator(idx_loop/4) ^ 1 << 0) << " to " << sse_data->GetOperator(idx_loop/4) << std::endl);
-                LOG(3,"Switch to neighbour " << (idx_loop ^ 1 << 0) << " and then link to " << sse_data->GetLink(idx_loop ^ 1 << 0) << std::endl);
-                idx_loop = sse_data->SwitchAndReverse(idx_loop);
+    if(not all_links_empty){
+        // First loop: Flip loops
+        do {
+            // Needs to be int for while exit criterion
+            int idx_loop(random_leg(rdm_engine));
+            int idx_loop_start(idx_loop);
+            LOG(3,"Start set idx_loop=" << idx_loop << std::endl);
+            if (sse_data->GetLink(idx_loop) >= 0) {
+                do{
+                    sse_data->FlipOperator(idx_loop/4);
+                    LOG(3,"Set oprtr " << (idx_loop/4) << " from " << (sse_data->GetOperator(idx_loop/4) ^ 1 << 0) << " to " << sse_data->GetOperator(idx_loop/4) << std::endl);
+                    LOG(3,"Switch to neighbour " << (idx_loop ^ 1 << 0) << " and then link to " << sse_data->GetLink(idx_loop ^ 1 << 0) << std::endl);
+                    idx_loop = sse_data->SwitchAndReverse(idx_loop);
 
-                // Check if flipped spins belong to pos_first
-                std::vector<unsigned int> idx_spins(LegToSpins(idx_loop));
-                LOG(4,"Got bond spins " << idx_spins[0] << " " << idx_spins[1] << std::endl);
-                if (pos_first[idx_spins[0]] == idx_loop || pos_first[idx_spins[0]] == (idx_loop ^ 1 << 0)) {
-                    sse_data->FlipSpin(idx_spins[0]);
-                    LOG(4,"Flip spin (idx " << idx_spins[0] << ")." << std::endl);
-                }
-                if (pos_first[idx_spins[1]] == idx_loop || pos_first[idx_spins[1]] == (idx_loop ^ 1 << 0)) {
-                    LOG(4,"Flip spin (idx " << idx_spins[1] << ")." << std::endl);
-                    sse_data->FlipSpin(idx_spins[1]);
-                }
+                    // Check if flipped spins belong to pos_first
+                    std::vector<unsigned int> idx_spins(LegToSpins(idx_loop));
+                    LOG(4,"Got bond spins " << idx_spins[0] << " " << idx_spins[1] << std::endl);
+                    if (pos_first[idx_spins[0]] == idx_loop || pos_first[idx_spins[0]] == (idx_loop ^ 1 << 0)) {
+                        sse_data->FlipSpin(idx_spins[0]);
+                        LOG(4,"Flip spin (idx " << idx_spins[0] << ")." << std::endl);
+                    }
+                    if (pos_first[idx_spins[1]] == idx_loop || pos_first[idx_spins[1]] == (idx_loop ^ 1 << 0)) {
+                        LOG(4,"Flip spin (idx " << idx_spins[1] << ")." << std::endl);
+                        sse_data->FlipSpin(idx_spins[1]);
+                    }
 
-                // Update leg counter
-                leg_counter++;
-            } while (idx_loop != idx_loop_start);
-            // The loop exists when idx_loop points to the start location.
-        }
-    } while(leg_counter < 4*sse_data->GetOperatorNumber(false));
-    // Stop when enough loops have been performed
+                    // Update leg counter
+                    leg_counter++;
+                } while (idx_loop != idx_loop_start);
+                // The loop exists when idx_loop points to the start location.
+            }
+        } while(leg_counter < 4*sse_data->GetOperatorNumber(false));
+        // Stop when enough loops have been performed
+    }
 
     // Second loop: Flip free spins
     for (unsigned int idx_spin(0); idx_spin < pos_first.size(); idx_spin++) {
-        if (pos_first[idx_spin] == -1)
+        if (pos_first[idx_spin] == -1 && random_prob(rdm_engine) < 0.5)
             sse_data->FlipSpin(idx_spin);
     }
 
