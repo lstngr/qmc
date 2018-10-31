@@ -19,6 +19,7 @@ MCStep::MCStep(Lattice* const lattice) : lattice(lattice),beta(20), expansion_fa
     random_leg = std::uniform_int_distribution<unsigned int>(0,4*op_str_length-1);
 
     observables_ = std::vector<Observable*>();
+    output_manager_ = new OManager(1,this);
 }
 
 //! Class destructor
@@ -29,6 +30,7 @@ MCStep::MCStep(Lattice* const lattice) : lattice(lattice),beta(20), expansion_fa
 MCStep::~MCStep(){
     // Delete random number generator
     delete sse_data;
+    delete output_manager_;
 }
 
 //! Set Beta parameter
@@ -56,6 +58,10 @@ void MCStep::AddObservable(Observable* obsrv) {
     observables_.push_back(obsrv);
 }
 
+const std::vector<Observable*>& MCStep::GetObservables() const {
+    return observables_;
+}
+
 //! Run a full Monte-Carlo Sweep
 /*!
  * This function runs a full quantum Monte-Carlo sweep on the system, that is
@@ -79,6 +85,7 @@ void MCStep::Sweep(unsigned int num_sweep){
         random_leg = std::uniform_int_distribution<unsigned int>(0,4*sse_data->GetOperatorNumber(false)-1);
         UpdateObservables();
     }
+    output_manager_->PrintObservables();
 }
 
 //! Performs a diagonal update on the system

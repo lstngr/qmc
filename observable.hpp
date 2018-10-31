@@ -17,6 +17,7 @@ namespace qmc{
             \param sim_data Pointer to a simulation container. Allows access to simulation data.*/
             virtual double Measure() const = 0; /*!< Returns the average value of the observable.
             \return The average value of the observable*/
+            
             virtual void ClearObservable()=0; /*!< Clears any stored variables to free space up for a new measurement.*/
     };
     
