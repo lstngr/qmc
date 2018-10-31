@@ -1,0 +1,20 @@
+/*! \page code_mcstep User-Simulation Interface
+  \brief Details the structural design of qmc::MCStep.
+
+  All user interaction with the simulation and its results is managed by
+  \ref qmc::MCStep "MCStep". This class allows the _spawning_ of simulation objects, and takes
+  a \ref qmc::Lattice "Lattice" object instantiated by the user to perform necessary set-up
+  steps. It manages:
+  - Random number generators (RNGs)
+  + A \ref qmc::MCStep::rdm_engine "Mersenne Twister", which is used by the
+  following object to generate probabilities
+  classes to generate random numbers
+  + A \ref qmc::MCStep::random_prob "continuous uniform RNG" between 0 and 1
+  + Two uniform integer distributions, \ref qmc::MCStep::random_bond
+  "random_bond" and \ref qmc::MCStep::random_leg "random_leg" returning random
+  bond and leg indexes.
+  - Simulation data, stored dynamically at the adress qmc::MCStep::sse_data.
+  - A \ref qmc::Lattice "lattice" and set of \ref
+  qmc::MCStep::observables_ "observables" provided by the user.
+ */
+

@@ -1,7 +1,7 @@
 #ifndef QMC_DEBUG_ENGINE_HPP_
 #define QMC_DEBUG_ENGINE_HPP_
 
-#define LOG_LEVEL 2
+#define LOG_LEVEL 1
 /*
  * Choose a log-level
  *-1 -> None

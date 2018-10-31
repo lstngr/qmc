@@ -1,0 +1,11 @@
+/*! \page code_lattice Lattice structures
+\brief Enumerates functionalities of qmc::Lattice and possible user-made
+expansions.
+
+One of course needs to define the shape of his system, thus the lattice to be
+studied. In the context of this code, this is translates to doing the conversion
+between bond indexes and spin indexes. We give an example using a linear spin
+chain:
+TODO example
+*/
+

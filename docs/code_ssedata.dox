@@ -1,0 +1,25 @@
+/*! \page code_ssedata Simulation Data Management
+\brief Explains how simulation data is stored, accessed and modified.
+
+The class qmc::SSEData is tasked with handling the spin and operator states of
+the system. It provides numerous public methods to access those parameters
+selectively. Modification of the class attributes, however, occurs only through
+private methods, in order to hide class data effectively. The access to these
+methods is however granted to qmc::MCStep for simplicity (through forward
+declaration as friend):
+
+    friend class MCStep;
+
+\section code_ssedata_conv Storage Conventions
+We define storage conventions used throughout the code. One might encounter such
+conventions in methods documentation too.
+
+\subsection code_ssedata_conv_spins Spin Storage Conventions
+Spiins
+\subsection code_ssedata_conv_oprtr Operator Storage Conventions
+Operaaators
+\subsection code_ssedata_conv_legs Link vertex storage conventions
+Leeegs
+*/
+
+
