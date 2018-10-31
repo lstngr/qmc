@@ -11,6 +11,7 @@ using namespace qmc;
 MCStep::MCStep(Lattice* const lattice) : lattice(lattice),beta(20), expansion_factor(0.2),rdm_engine(std::mt19937(5)) {
 
     int op_str_length = 6; // Number of time slots
+    measurement_frequency_ = 20;
     LoopMethod = "wolff";
     sse_data = new SSEData(op_str_length,lattice,&rdm_engine);
     // Initialize number generators
@@ -75,6 +76,7 @@ const std::vector<Observable*>& MCStep::GetObservables() const {
  * \param num_sweep How many sweep should be carried out
  */
 void MCStep::Sweep(unsigned int num_sweep){
+    output_manager_->PrintInitLine();
     for(unsigned int idx_sweep(0); idx_sweep<num_sweep; idx_sweep++) {
         LOG(2,"Sweep " << idx_sweep << std::endl);
         LOG(2,"=========================" << std::endl);
@@ -84,8 +86,12 @@ void MCStep::Sweep(unsigned int num_sweep){
         sse_data->Equilibrate(expansion_factor);
         random_leg = std::uniform_int_distribution<unsigned int>(0,4*sse_data->GetOperatorNumber(false)-1);
         UpdateObservables();
+        if(idx_sweep%measurement_frequency_==0 && idx_sweep) {
+            output_manager_->PrintObservables(idx_sweep);
+            for(auto it=observables_.begin(); it!=observables_.end(); ++it)
+                (*it)->ClearObservable();
+        }
     }
-    output_manager_->PrintObservables();
 }
 
 //! Performs a diagonal update on the system

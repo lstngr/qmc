@@ -22,6 +22,7 @@ OManager::OManager(short unsigned int stream_type, const MCStep* sim_engine, std
 }
 
 OManager::~OManager() {
+    *out_stream_ << std::endl << std::endl;
     if(out_streamfile_.is_open()){
         out_streamfile_.close();
     }
@@ -33,6 +34,15 @@ void OManager::PrintObservables(unsigned int sweep_index) {
     *out_stream_ << std::setw(10) << std::left << sweep_index << " "/*<< std::setw(7) << sim_engine_->GetMeasureBins()*/;
     for(auto it=obsrv.begin(); it!=obsrv.end(); ++it) {
         *out_stream_ << std::setw(15) << std::setprecision(14) << std::left << (*it)->Measure() << " ";
+    }
+    *out_stream_ << std::endl;
+}
+
+void OManager::PrintInitLine() {
+    const std::vector<Observable*> obsrv(sim_engine_->GetObservables());
+    *out_stream_ << std::setw(10) << std::left << "# Sweeps";
+    for(auto it=obsrv.begin(); it!=obsrv.end(); ++it) {
+        *out_stream_ << std::setw(15) << std::left << (*it)->GetName() << " ";
     }
     *out_stream_ << std::endl;
 }

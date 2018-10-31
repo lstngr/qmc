@@ -8,7 +8,7 @@ using namespace qmc;
 * which is assumed constant during the lifetime of the class.
 * \param beta Inverse temperature
 */
-ObservableHamilton::ObservableHamilton(double beta): beta_(beta){
+ObservableHamilton::ObservableHamilton(double beta): Observable("Energy"), beta_(beta){
     num_oprtr_ = std::vector<size_t>(); //Make sure the measurements vector is empty.
 }
 

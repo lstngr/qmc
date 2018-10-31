@@ -47,6 +47,7 @@ namespace qmc{
             OManager* output_manager_;
             double beta; //!< Thermodynamic Beta
             double expansion_factor; //!< Controls the operator length
+            unsigned int measurement_frequency_;
             std::string LoopMethod; /*!< Stores the OperatorLoop method to use.
                                       In its current state, the program supports:
                                       - "swenwang": Swendsen-Wang Algorithm

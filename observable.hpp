@@ -11,7 +11,7 @@ namespace qmc{
      */
     class Observable{
         public:
-            Observable(){};
+            Observable(std::string name=""):obsrv_name_(name){};
             virtual ~Observable(){};
             virtual void UpdateObservable(SSEData* const sim_data)=0; /*!< Updates the attributes of the observable after each sweep.
             \param sim_data Pointer to a simulation container. Allows access to simulation data.*/
@@ -19,8 +19,11 @@ namespace qmc{
             \return The average value of the observable*/
             
             virtual void ClearObservable()=0; /*!< Clears any stored variables to free space up for a new measurement.*/
+            std::string GetName() const {return obsrv_name_;}
+        private:
+            std::string obsrv_name_;
     };
-    
+
     /*! \brief Hamiltonian Observable
      *
      * This observable evaluates the energy of the system. It stores

@@ -29,13 +29,13 @@ namespace qmc{
             void PrintObservables(unsigned int sweep_index=0);
             void PrintSpins();
             void PrintOperators();
+            void PrintInitLine();
         private:
             std::ostream* out_stream_;
             std::streambuf* out_buffer_;
             std::ofstream out_streamfile_;
             const MCStep* sim_engine_;
             const short unsigned int stream_type_;
-            bool out_stream_open_;
             // TODO STRUCT
             // std::string obsrv_filename_;
             // std::string oprtr_filename_;
