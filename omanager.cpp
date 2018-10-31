@@ -11,7 +11,7 @@ OManager::OManager(short unsigned int stream_type, const MCStep* sim_engine, std
             break;
         case 1:
             out_streamfile_ = std::ofstream();
-            out_streamfile_.open(filename);
+            out_streamfile_.open(filename, std::ios_base::app);
             out_buffer_ = out_streamfile_.rdbuf();
             break;
         default:
