@@ -38,6 +38,7 @@ namespace qmc{
             bool AuthRemove();
             std::vector<unsigned int> LegToSpins(unsigned int idx_leg) const;
             void UpdateObservables() const;
+            void RestoreLoop(size_t idx_leg);
 
             Lattice* const lattice; //!< Lattice structure of the system. Encloses the information needed for bond index to spin indexes.
             SSEData* sse_data; //!< Spin and operator state of the system
@@ -52,6 +53,7 @@ namespace qmc{
             std::uniform_real_distribution<double> random_prob; //!< Generates a random probability
             std::uniform_int_distribution<unsigned int> random_leg; //!< Generates a random bond index (for qmc::MCStep::OperatorLoopWolff)
             std::vector<Observable*> observables_; /*!< Contains pointers to user defined observables. They will be updated for every sweep, so that the user can request their values through the appropriate method afterwards.*/
+            unsigned int loop_break_trigger; /*!< Break operator loops when loop length exceeds this value.*/
 
     }; // class MCStep
 

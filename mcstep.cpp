@@ -17,6 +17,7 @@ MCStep::MCStep(Lattice* const lattice) : lattice(lattice),beta(20), expansion_fa
     random_bond = std::uniform_int_distribution<unsigned int>(0,lattice->GetBondNumber()-1);
     random_prob = std::uniform_real_distribution<double>(0.0,1.0);
     random_leg = std::uniform_int_distribution<unsigned int>(0,4*op_str_length-1);
+    loop_break_trigger = 2*(4*op_str_length);
 
     observables_ = std::vector<Observable*>();
 }
@@ -210,6 +211,8 @@ void MCStep::OperatorLoopSwenWang(std::vector<int> const& pos_first){
 
     // First loop: Decides which oprtrs/spins to flip
     for (unsigned int idx_leg(0); idx_leg<4*sse_data->GetOperatorNumber(false); idx_leg+=2) {
+        // Initialize leg counter, will trigger a loop break for long loops
+        unsigned int leg_counter(0);
         // Needs to be int for while exit criterion
         int idx_loop(idx_leg);
         LOG(4,"Just set idx_loop=" << idx_loop << std::endl);
@@ -230,6 +233,10 @@ void MCStep::OperatorLoopSwenWang(std::vector<int> const& pos_first){
                 LOG(3,"Switch to neighbour idx_loop=" << (idx_loop ^ 1 << 0) << std::endl);
                 idx_loop = sse_data->SwitchAndReverse(idx_loop);
                 LOG(3,"Goto next idx_loop=" << idx_loop << std::endl << std::endl);
+                leg_counter++;
+                if(leg_counter > loop_break_trigger){
+                    RestoreLoop(idx_leg); // Restore ongoing loop
+                }
             } while (idx_loop >= 0);
             // The loop exists when idx_loop points to a now modified location.
         }
