@@ -11,7 +11,7 @@ using namespace qmc;
 MCStep::MCStep(Lattice* const lattice) : lattice(lattice),beta(20), expansion_factor(0.2),rdm_engine(std::mt19937(5)) {
 
     int op_str_length = 6; // Number of time slots
-    measurement_frequency_ = 20;
+    measurement_frequency_ = 1000;
     LoopMethod = "wolff";
     sse_data = new SSEData(op_str_length,lattice,&rdm_engine);
     // Initialize number generators

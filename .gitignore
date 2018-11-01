@@ -5,6 +5,10 @@
 latex/
 html/
 
+# Outputs
+*.out
+out/
+
 # Main executable
 qmc
 
