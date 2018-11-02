@@ -8,7 +8,7 @@
 #include "lattice.hpp"
 #include "ssedata.hpp"
 #include "observable.hpp"
-#include "omanager.hpp"
+#include "iomanager.hpp"
 
 namespace qmc{
 
@@ -22,6 +22,7 @@ namespace qmc{
     class MCStep{
         public:
             MCStep(Lattice* const lattice);
+            MCStep(Lattice* const lattice, const Configuration& sim_conf_);
             virtual ~MCStep();
             void Sweep(unsigned int num_sweep=1);
             void SetBeta(double beta=10);
@@ -44,10 +45,14 @@ namespace qmc{
 
             Lattice* const lattice; //!< Lattice structure of the system. Encloses the information needed for bond index to spin indexes.
             SSEData* sse_data; //!< Spin and operator state of the system
-            OManager* output_manager_;
+            OManager* output_manager_; /*!< Pointer to an output manager.
+                The class constructor is in charge of setting up this
+                parameter.*/
             double beta; //!< Thermodynamic Beta
             double expansion_factor; //!< Controls the operator length
-            unsigned int measurement_frequency_;
+            unsigned int measurement_frequency_; /*!< Quantifies the number of
+                sweep taken between measures. When a measure is made, averages
+                are taken over this range of sweeps.*/
             std::string LoopMethod; /*!< Stores the OperatorLoop method to use.
                                       In its current state, the program supports:
                                       - "swenwang": Swendsen-Wang Algorithm

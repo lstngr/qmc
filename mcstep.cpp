@@ -23,6 +23,28 @@ MCStep::MCStep(Lattice* const lattice) : lattice(lattice),beta(20), expansion_fa
     output_manager_ = new OManager(1,this);
 }
 
+/*! Builds MCStep using a configuration file.
+ * It still relies on the user for Lattice and Observable initialization!
+ * \param lattice Pointer to a user-initialized lattice
+ * \param sim_conf_ Configuration parameters
+ */
+MCStep::MCStep(Lattice* const lattice, const Configuration& sim_conf_)
+    :lattice(lattice)
+{
+    int op_str_length(6);
+    beta = sim_conf_.beta;
+    expansion_factor = sim_conf_.expansion_factor;
+    measurement_frequency_ = sim_conf_.measurement_frequency;
+    LoopMethod = sim_conf_.LoopMethod;
+    sse_data = new SSEData(op_str_length,lattice,&rdm_engine);
+    // Initialize number generators
+    random_bond = std::uniform_int_distribution<unsigned int>(0,lattice->GetBondNumber()-1);
+    random_prob = std::uniform_real_distribution<double>(0.0,1.0);
+    random_leg = std::uniform_int_distribution<unsigned int>(0,4*op_str_length-1);
+    observables_ = std::vector<Observable*>();
+    output_manager_ = new OManager(1,this,sim_conf_.output_dest);
+}
+
 //! Class destructor
 /*!
  * Empty for now. Will be used when dynamic allocation is employed in the future
@@ -59,6 +81,8 @@ void MCStep::AddObservable(Observable* obsrv) {
     observables_.push_back(obsrv);
 }
 
+//! Provides (constant) access to observables_'s data.
+//! \return Constant reference to system observables
 const std::vector<Observable*>& MCStep::GetObservables() const {
     return observables_;
 }

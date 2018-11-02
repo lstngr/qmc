@@ -1,0 +1,6 @@
+beta=10
+expansion_factor=0.2
+measurement_frequency=10
+LoopMethod=wolff
+num_sweep=1000
+output_dest=data.out

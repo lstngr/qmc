@@ -1,6 +1,6 @@
 CXX = g++
 CXXFLAGS = -g -O0
-OBJECTS = qmc.o mcstep.o ssedata.o lattice.o observable.o omanager.o
+OBJECTS = qmc.o mcstep.o ssedata.o lattice.o observable.o iomanager.o
 
 all: qmc
 
@@ -22,8 +22,8 @@ lattice.o: lattice.cpp lattice.hpp
 observable.o: observable.cpp observable.hpp
 	$(CXX) $(CXXFLAGS) -c observable.cpp -o $@
 
-omanager.o: omanager.cpp omanager.hpp
-	$(CXX) $(CXXFLAGS) -c omanager.cpp -o $@
+iomanager.o: iomanager.cpp iomanager.hpp
+	$(CXX) $(CXXFLAGS) -c iomanager.cpp -o $@
 
 clean:
 	-rm -fr *.o *.gch qmc html/ latex/
