@@ -26,4 +26,7 @@ iomanager.o: iomanager.cpp iomanager.hpp
 	$(CXX) $(CXXFLAGS) -c iomanager.cpp -o $@
 
 clean:
-	-rm -fr *.o *.gch qmc html/ latex/
+	-rm -f *.o *.gch qmc
+
+cleandocs:
+	-rm -fr html/ latex/
