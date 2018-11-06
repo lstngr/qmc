@@ -8,6 +8,10 @@ html/
 # Outputs
 *.out
 out/
+Results/
+
+# Matlab
+*.m~
 
 # Main executable
 qmc

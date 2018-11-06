@@ -6,7 +6,7 @@ function filelist = run_scan(conffile,param,values)
     for idx=1:length(values)
         v = values(idx);
         if ~isstring(v)
-            v = num2str(v);
+            v = num2str(v,'%.4f');
         end
         filelist{idx} = param+"="+v+".out";
         % Modify configuration file
@@ -16,7 +16,8 @@ function filelist = run_scan(conffile,param,values)
         system(sed_out);
         
         % Run QMC
-        !./qmc
+        sys_runcommand = "./qmc "+conffile;
+        system(sys_runcommand);
     end
     
 end
