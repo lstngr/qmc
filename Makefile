@@ -1,6 +1,6 @@
 CXX = g++
 CXXFLAGS = -g -O0
-OBJECTS = qmc.o mcstep.o ssedata.o lattice.o observable.o iomanager.o
+OBJECTS = qmc.o mcstep.o ssedata.o lattice.o observable.o iomanager.o debugconf.hpp
 
 all: qmc
 

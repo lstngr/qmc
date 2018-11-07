@@ -29,13 +29,14 @@ MCStep::MCStep(Lattice* const lattice) : lattice(lattice),beta(20), expansion_fa
  * \param sim_conf_ Configuration parameters
  */
 MCStep::MCStep(Lattice* const lattice, const Configuration& sim_conf_)
-    :lattice(lattice)
+    :lattice(lattice), rdm_engine(std::mt19937(5))
 {
     int op_str_length(6);
     beta = sim_conf_.beta;
     expansion_factor = sim_conf_.expansion_factor;
     measurement_frequency_ = sim_conf_.measurement_frequency;
     LoopMethod = sim_conf_.LoopMethod;
+    LOG(2,beta << " " << expansion_factor << " " << measurement_frequency_ << " " << LoopMethod << " " << lattice->GetBondNumber() << std::endl)
     sse_data = new SSEData(op_str_length,lattice,&rdm_engine);
     // Initialize number generators
     random_bond = std::uniform_int_distribution<unsigned int>(0,lattice->GetBondNumber()-1);
@@ -110,7 +111,7 @@ void MCStep::Sweep(unsigned int num_sweep){
         sse_data->Equilibrate(expansion_factor);
         random_leg = std::uniform_int_distribution<unsigned int>(0,4*sse_data->GetOperatorNumber(false)-1);
         UpdateObservables();
-        if(idx_sweep%measurement_frequency_==0 && idx_sweep) {
+        if(idx_sweep%measurement_frequency_==1 && idx_sweep) {
             output_manager_->PrintObservables(idx_sweep);
             for(auto it=observables_.begin(); it!=observables_.end(); ++it)
                 (*it)->ClearObservable();
@@ -142,12 +143,9 @@ void MCStep::DiagUpdate(){
                 sse_data->SetOperator(i, 2 * bond_num);
             }
         }
-        else if(sse_data->GetOperator(i)%2==0){ // There exists a diagonal operator
-            // try remove
-            if(AuthRemove()){
-                LOG(3,"Diagonal Removal (operator " << i << ")" << std::endl);
-                sse_data->SetOperator(i,-1);
-            }
+        else if(sse_data->GetOperator(i)%2==0 && AuthRemove()){
+            LOG(3,"Diagonal Removal (operator " << i << ")" << std::endl);
+            sse_data->SetOperator(i,-1);
         }
         else{ // Off-Diagonal operator, update spins
             unsigned int bond = sse_data->GetOperator(i)/2;

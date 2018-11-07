@@ -1,10 +1,9 @@
 nmeas  = zeros(1,length(data));
 energy = nmeas; std_en = nmeas;
-clear nmeas;
 
 for i=1:length(data)
     
-    nsweep = data{i}{1};
+    pos_sweeps = data{i}{1};
     bins   = data{i}{2};
     
     outliers = isoutlier(bins);
@@ -17,6 +16,7 @@ for i=1:length(data)
 %     
 %     histfit(bins(~outliers),10,'norm')
 %     pause
-    [energy(i),std_en(i)] = normfit(bins);
+    [energy(i),std_en(i)] = normfit(bins(~outliers));
+    nmeas(i) = length(bins(~outliers));
     
 end

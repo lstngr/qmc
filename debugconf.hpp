@@ -12,6 +12,6 @@
  * 4 -> MOAR INFO
  */
 
-#define LOG(lvl,x) if(lvl<=LOG_LEVEL){ std::cerr << x; }
+#define LOG(lvl,x) if(lvl<=LOG_LEVEL && lvl>-1){ std::cerr << x; }
 
 #endif //QMC_DEBUG_ENGINE_HPP_
