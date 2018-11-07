@@ -1,4 +1,4 @@
-nsweep = ceil(logspace(3,6,7));
+nsweep = ceil(logspace(3,5,5));
 filelist = "num_sweep=" + strtrim(cellstr(num2str(nsweep','%.4f'))') + ".out";
 data = cell(1,length(filelist));
 

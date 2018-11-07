@@ -143,9 +143,11 @@ void MCStep::DiagUpdate(){
                 sse_data->SetOperator(i, 2 * bond_num);
             }
         }
-        else if(sse_data->GetOperator(i)%2==0 && AuthRemove()){
-            LOG(3,"Diagonal Removal (operator " << i << ")" << std::endl);
-            sse_data->SetOperator(i,-1);
+        else if(sse_data->GetOperator(i)%2==0){
+            if(AuthRemove()){
+                LOG(3,"Diagonal Removal (operator " << i << ")" << std::endl);
+                sse_data->SetOperator(i,-1);
+            }
         }
         else{ // Off-Diagonal operator, update spins
             unsigned int bond = sse_data->GetOperator(i)/2;
