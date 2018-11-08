@@ -1,32 +1,32 @@
 CXX = g++
 CXXFLAGS = -g -O0
-OBJECTS = qmc.o mcstep.o ssedata.o lattice.o observable.o iomanager.o debugconf.hpp
+
+SRCDIR = src
+BUILDDIR = build
+TARGET = qmc
+
+SRCEXT = cpp
+SOURCES = $(shell find $(SRCDIR) -type f -name '*.$(SRCEXT)')
+OBJECTS = $(SOURCES:$(SRCDIR)/%.$(SRCEXT)=$(BUILDDIR)/%.o)
+INC = -I include
 
 all: qmc
 
-qmc: $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $(OBJECTS) -o $@
+$(TARGET): $(OBJECTS)
+	@echo "Linking...."
+	@echo " $(CXX) $^ -o $(TARGET)";
+	$(CXX) $(CXXFLAGS) $(OBJECTS) -o $(TARGET)
 
-qmc.o: qmc.cpp
-	$(CXX) $(CXXFLAGS) -c qmc.cpp -o $@
-
-mcstep.o: mcstep.cpp mcstep.hpp
-	$(CXX) $(CXXFLAGS) -c mcstep.cpp -o $@
-
-ssedata.o: ssedata.cpp ssedata.hpp
-	$(CXX) $(CXXFLAGS) -c ssedata.cpp -o $@
-
-lattice.o: lattice.cpp lattice.hpp
-	$(CXX) $(CXXFLAGS) -c lattice.cpp -o $@
-
-observable.o: observable.cpp observable.hpp
-	$(CXX) $(CXXFLAGS) -c observable.cpp -o $@
-
-iomanager.o: iomanager.cpp iomanager.hpp
-	$(CXX) $(CXXFLAGS) -c iomanager.cpp -o $@
+$(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
+	@mkdir -p $(BUILDDIR)
+	@echo " $(CXX) $(CXXFLAGS) $(INC) -c -o $@ $<";
+	$(CXX) $(CXXFLAGS) $(INC) -c -o $@ $<
 
 clean:
-	-rm -f *.o *.gch qmc
+	@echo " Cleaning..."
+	@echo " $(RM) -r $(BUILDDIR) $(TARGET)"; $(RM) -r $(BUILDDIR) $(TARGET)
 
 cleandocs:
 	-rm -fr html/ latex/
+
+.PHONY : clean

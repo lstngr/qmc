@@ -11,9 +11,13 @@ out/
 
 # Matlab
 *.m~
+parfor*.in
 
 # Main executable
 qmc
+
+# Results
+Results/**/*.in
 
 # Created by https://www.gitignore.io/api/c++
 
