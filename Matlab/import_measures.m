@@ -1,4 +1,5 @@
-filelist = "num_sweep=" + strtrim(cellstr(num2str(pvals','%.4f'))') + ".out";
+pvals = ceil(linspace(10,100,10));
+filelist = run_scan('InputConfig/default.in','beta',pvals);
 data = cell(1,length(filelist));
 
 for idx=1:length(filelist)   
