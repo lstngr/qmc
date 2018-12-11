@@ -355,18 +355,6 @@ void MCStep::OperatorLoopWolff(std::vector<int> const& pos_first, bool all_links
                     else
                         sse_data->LowerSpin(idx_loop);
                     sse_data->SetOperator(idx_loop/4, lattice->GetOperatorType(*sse_data, idx_loop));
-                    
-                    // Check if flipped spins belong to pos_first
-                    std::vector<unsigned int> idx_spins(LegToSpins(idx_loop));
-                    LOG(4,"Got bond spins " << idx_spins[0] << " " << idx_spins[1] << std::endl);
-                    if (pos_first[idx_spins[0]] == idx_loop || pos_first[idx_spins[0]] == (idx_loop ^ 1 << 0)) {
-                        sse_data->FlipSpin(idx_spins[0]);
-                        LOG(4,"Flip spin (idx " << idx_spins[0] << ")." << std::endl);
-                    }
-                    if (pos_first[idx_spins[1]] == idx_loop || pos_first[idx_spins[1]] == (idx_loop ^ 1 << 0)) {
-                        LOG(4,"Flip spin (idx " << idx_spins[1] << ")." << std::endl);
-                        sse_data->FlipSpin(idx_spins[1]);
-                    }
 
                     // Update leg counter
                     leg_counter++;

@@ -8,6 +8,7 @@ namespace qmc{
     class SSEData;
 
     struct Spin{
+        Spin(unsigned int tsn, int tsz):two_norm(tsn),two_sz(tsz){}
         unsigned int two_norm;
         int two_sz;
     };

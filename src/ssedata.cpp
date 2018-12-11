@@ -18,13 +18,16 @@ SSEData::SSEData(unsigned int time_slots, Lattice* const lattice, std::mt19937* 
     // Prepare random spin generation
     std::uniform_int_distribution<unsigned int> random_spin(0,1);
 
-    spins = std::vector<int>(lattice->GetSpinNumber(),0);
+    spins = std::vector<Spin>(lattice->GetSpinNumber(),Spin(0,0));
     oprtr = std::vector<int>(num_time_slots,-1);
     link_vertex = std::vector<int>(4*num_time_slots,-1);
+    bond_vertex_= std::vector<std::vector<Spin>>(num_time_slots, std::vector<Spin>(4,Spin(0,0)));
 
-//    spins = std::vector<int>{1,-1};
-    for(unsigned int idx_spin=0; idx_spin<lattice->GetSpinNumber(); idx_spin++)
-        spins[idx_spin] = 2*random_spin(*rdm_engine) - 1;
+    for(unsigned int idx_spin=0; idx_spin<lattice->GetSpinNumber(); idx_spin++){
+        // TODO - Call Lattice for restrictions
+        spins[idx_spin].two_norm = 1;
+        spins[idx_spin].two_sz = 2*random_spin(*rdm_engine) - 1;
+    }
 }
 
 //! SSEData destructor
@@ -66,6 +69,14 @@ int SSEData::GetSpin(unsigned int idx_spin) const{
 //! \param val_spin Value of the spin
 void SSEData::SetSpin(unsigned int idx_spin, int val_spin){
     spins[idx_spin] = val_spin;
+}
+
+void SSEData::RaiseSpin(unsigned int idx_spin, int amount){
+    bond_vertex_[idx_spin/4][idx_spin%4].two_sz += 2*amount;
+}
+
+void SSEData::LowerSpin(unsigned int idx_spin, unsigned int amount){
+    RaiseSpin(idx_spin,-amount);
 }
 
 //! Get the value of an operator (type and position).
@@ -218,7 +229,17 @@ void SSEData::ResetLinkVertex(){
  * \return Index of the leg after a SWR procedure.
  */
 int SSEData::SwitchAndReverse(int idx_leg) const {
-    return GetLink(idx_leg ^ 1 << 0);
+    // idx_leg XOR 1
+    return idx_leg ^ 1 << 0;
+}
+
+int SSEData::ContinueStraight(int idx_leg) const {
+    // idx_leg XOR 10
+    return idx_leg ^ 1 << 1;
+}
+
+int SSEData::SwitchAndContinue(int idx_leg) const {
+    return SwitchAndReverse(ContinueStraight(idx_leg));
 }
 
 //! Expands the operator time slots until the system equilibriates
