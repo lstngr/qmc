@@ -5,6 +5,13 @@
 
 namespace qmc{
 
+    class SSEData;
+
+    struct Spin{
+        unsigned int two_norm;
+        int two_sz;
+    };
+
     //! Base class managing Lattice structures.
     /*!
      * This class is meant to enable OOP programmation later in the code. It
@@ -50,6 +57,15 @@ namespace qmc{
              * \return Number of bonds between spins.
              */
             virtual unsigned int GetBondNumber() const = 0;
+
+            virtual bool IsLoopStart(std::vector<Spin> vrtx, unsigned int leg) const; // Def always true
+            virtual int  GetLoopType(std::vector<Spin> vrtx, unsigned int leg) const = 0;
+            virtual std::vector<double> GetPathProbs(std::vector<Spin> vrtx, unsigned int leg) const = 0;
+            virtual unsigned int GetOperatorType(std::vector<Spin> vrtx, unsigned int leg) const = 0;
+            virtual unsigned int GetOperatorWeight(std::vector<Spin> vrtx, unsigned int leg) const = 0;
+            virtual bool IsNegativeOperator(std::vector<Spin> vrtx, unsigned int leg) const = 0;
+            virtual void SpecialUpdates(SSEData& ssedata) const = 0;
+
         protected:
         private:
 

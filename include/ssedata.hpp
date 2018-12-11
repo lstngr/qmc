@@ -29,25 +29,34 @@ namespace qmc{
             void PrintSpins() const;
             void PrintLinks() const;
             unsigned int GetSpinNumber() const;
-            int SwitchAndReverse(int idx_leg) const;
-        protected:
-
-        private:
-            void SetSpin(unsigned int idx_spin, int val_spin);
+            int SwitchAndReverse (int idx_leg) const;
+            int ContinueStraight (int idx_leg) const;
+            int SwitchAndContinue(int idx_leg) const;
+        
+            void SetSpin(unsigned int idx_spin, int val_spin); // To move to s,sz params
+            void SetSpin(Spin spin_var);
+            void SetSz(int sz);
+            void SetSNorm(int s_norm);
             void SetOperator(unsigned int idx_oprtr, int val_oprtr=-1);
-            void FlipOperator(unsigned int idx_oprtr);
+            void FlipOperator(unsigned int idx_oprtr); // Deprecated
             void SetLink(unsigned int vertex, int val_vertex);
             void LinkVertex(unsigned int vertex_0, unsigned int vertex_1);
-            void FlipSpins(unsigned int num_bond);
-            void FlipSpin(unsigned int idx_spin);
+            void FlipSpins(unsigned int num_bond); // Deprecated
+            void FlipSpin(unsigned int idx_spin); // Deprecated
+            void RaiseSpin(unsigned int idx_spin, unsigned int amount=1);
+            void LowerSpin(unsigned int idx_spin, unsigned int amount=1);
             void ResetLinkVertex();
             void Equilibrate(double expansion_factor);
 
-            friend class MCStep; //!< Forward declaration of qmc::MCStep. This allows moving most methods of SSEData to private, while retaining access from qmc::MCStep.
+        private:
             int num_time_slots; //!< Number of time slots to place operators
-            std::vector<int> spins; //!< Spin state of the system (plus or minus ones in the Heisenberg 1/2 model)
+            int num_oprtr_type_;
+            std::vector<Spin> spins; //!< Spin state of the system (plus or minus ones in the Heisenberg 1/2 model)
             std::vector<int> oprtr; //!< Operator string. -1 indicates the identity operator
             std::vector<int> link_vertex; //!< Linked vertex storage of the configuration.
+            std::vector<std::vector<Spin>> bond_vertex_;
+            std::vector<unsigned int> v_first_;
+            std::vector<unsigned int> v_last_;
             Lattice* const lattice; /*!< Lattice obtained from the qmc::MCStep constructor. The initialization is left to the user.*/
 
     };
