@@ -110,6 +110,7 @@ void MCStep::Sweep(unsigned int num_sweep){
         // OperatorLoop is implicitely called from LinkVertices.
         sse_data->Equilibrate(expansion_factor);
         random_leg = std::uniform_int_distribution<unsigned int>(0,4*sse_data->GetOperatorNumber(false)-1);
+        sse_data->UpdateSpinState();
         UpdateObservables();
         if(idx_sweep%measurement_frequency_==1 && idx_sweep) {
             output_manager_->PrintObservables(idx_sweep);
@@ -316,14 +317,45 @@ void MCStep::OperatorLoopWolff(std::vector<int> const& pos_first, bool all_links
             // Needs to be int for while exit criterion
             int idx_loop(random_leg(rdm_engine));
             int idx_loop_start(idx_loop);
-            LOG(3,"Start set idx_loop=" << idx_loop << std::endl);
-            if (sse_data->GetLink(idx_loop) >= 0) {
-                do{
-                    sse_data->FlipOperator(idx_loop/4);
-                    LOG(3,"Set oprtr " << (idx_loop/4) << " from " << (sse_data->GetOperator(idx_loop/4) ^ 1 << 0) << " to " << sse_data->GetOperator(idx_loop/4) << std::endl);
-                    LOG(3,"Switch to neighbour " << (idx_loop ^ 1 << 0) << " and then link to " << sse_data->GetLink(idx_loop ^ 1 << 0) << std::endl);
-                    idx_loop = sse_data->SwitchAndReverse(idx_loop);
 
+            if (lattice->IsLoopStart(*sse_data,idx_loop)) {
+                short loop_type(lattice->GetLoopType(*sse_data,idx_loop));
+                do{
+                    // Update bond vertex
+                    idx_loop = sse_data->GetLink(idx_loop);
+                    if (loop_type>0)
+                        sse_data->RaiseSpin(idx_loop);
+                    else
+                        sse_data->LowerSpin(idx_loop);
+
+                    // Get Moves
+                    std::vector<double> path_probs(lattice->GetPathProbs(*sse_data,idx_loop));
+                    std::vector<int> comb_probs;
+                    std::partial_sum(path_probs.begin(), path_probs.end(), comb_probs);
+                    // Choose Move and update
+                    double path_selector = random_prob(rdm_engine);
+                    if(path_selector < comb_probs[0]){
+                        // Bounce
+                    }
+                    else if(path_selector < comb_probs[1]){
+                        // CS
+                        idx_loop = sse_data->ContinueStraight(idx_loop);
+                    }
+                    else if(path_selector < comb_probs[2]){
+                        // SWC
+                        idx_loop = sse_data->SwitchAndContinue(idx_loop);
+                    }
+                    else{
+                        // SWR
+                        idx_loop = sse_data->SwitchAndReverse(idx_loop);
+                        loop_type *= -1;
+                    }
+                    if (loop_type>0)
+                        sse_data->RaiseSpin(idx_loop);
+                    else
+                        sse_data->LowerSpin(idx_loop);
+                    sse_data->SetOperator(idx_loop/4, lattice->GetOperatorType(*sse_data, idx_loop));
+                    
                     // Check if flipped spins belong to pos_first
                     std::vector<unsigned int> idx_spins(LegToSpins(idx_loop));
                     LOG(4,"Got bond spins " << idx_spins[0] << " " << idx_spins[1] << std::endl);

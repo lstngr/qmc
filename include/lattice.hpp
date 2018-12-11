@@ -58,12 +58,12 @@ namespace qmc{
              */
             virtual unsigned int GetBondNumber() const = 0;
 
-            virtual bool IsLoopStart(std::vector<Spin> vrtx, unsigned int leg) const; // Def always true
-            virtual int  GetLoopType(std::vector<Spin> vrtx, unsigned int leg) const = 0;
-            virtual std::vector<double> GetPathProbs(std::vector<Spin> vrtx, unsigned int leg) const = 0;
-            virtual unsigned int GetOperatorType(std::vector<Spin> vrtx, unsigned int leg) const = 0;
-            virtual unsigned int GetOperatorWeight(std::vector<Spin> vrtx, unsigned int leg) const = 0;
-            virtual bool IsNegativeOperator(std::vector<Spin> vrtx, unsigned int leg) const = 0;
+            virtual bool IsLoopStart(SSEData& ssedata, unsigned int leg) const; // Def always true
+            virtual int  GetLoopType(SSEData& ssedata, unsigned int leg) const = 0;
+            virtual std::vector<double> GetPathProbs(SSEData& ssedata, unsigned int leg) const = 0;
+            virtual unsigned int GetOperatorType(SSEData& ssedata, unsigned int leg) const = 0;
+            virtual double GetOperatorWeight(SSEData& ssedata, unsigned int leg) const = 0;
+            virtual bool IsNegativeOperator(SSEData& ssedata, unsigned int leg) const = 0;
             virtual void SpecialUpdates(SSEData& ssedata) const = 0;
 
         protected:
@@ -79,9 +79,16 @@ namespace qmc{
         public:
             Lattice1D(unsigned int length);
             virtual ~Lattice1D(){};
-            std::vector<unsigned int> GetSpinsIndex(unsigned int num_bond) const;
-            unsigned int GetSpinNumber() const;
-            unsigned int GetBondNumber() const;
+            std::vector<unsigned int> GetSpinsIndex(unsigned int num_bond) const override;
+            unsigned int GetSpinNumber() const override;
+            unsigned int GetBondNumber() const override;
+            bool IsLoopStart(SSEData& ssedata, unsigned int leg) const override; // Def always true
+            int  GetLoopType(SSEData& ssedata, unsigned int leg) const override;
+            std::vector<double> GetPathProbs(SSEData& ssedata, unsigned int leg) const override;
+            unsigned int GetOperatorType(SSEData& ssedata, unsigned int leg) const override;
+            double GetOperatorWeight(SSEData& ssedata, unsigned int leg) const override;
+            bool IsNegativeOperator(SSEData& ssedata, unsigned int leg) const override;
+            void SpecialUpdates(SSEData& ssedata) const override;
         protected:
         private:
             unsigned int length; //!< Number of sites (and bonds) of the lattice.

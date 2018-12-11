@@ -1,4 +1,5 @@
 #include "lattice.hpp"
+#include "ssedata.hpp"
 
 using namespace qmc;
 
@@ -45,4 +46,36 @@ unsigned int Lattice1D::GetSpinNumber() const{
 unsigned int Lattice1D::GetBondNumber() const{
     return length;
 }
+
+bool Lattice1D::IsLoopStart(SSEData& ssedata, unsigned int leg) const{
+    int oprtr(ssedata.GetOperator(leg/4));
+    if(oprtr!=-1)
+        return true;
+    return false;
+}
+
+int Lattice1D::GetLoopType(SSEData& ssedata, unsigned int leg) const{
+    return ssedata.GetLegSpin(leg).two_sz;
+}
+
+std::vector<double> Lattice1D::GetPathProbs(SSEData& ssedata, unsigned int leg) const{
+    return std::vector<double>({.0,.0,.0,1.});
+}
+
+unsigned int Lattice1D::GetOperatorType(SSEData& ssedata, unsigned int leg) const{
+    std::vector<Spin> local_vrtx(ssedata.GetBondVrtx(leg/4));
+    if(local_vrtx[0].two_sz == local_vrtx[2].two_sz)
+        return 0;
+    return 1;
+}
+
+double Lattice1D::GetOperatorWeight(SSEData& ssedata, unsigned int leg) const{
+    return 1.0;
+}
+
+bool Lattice1D::IsNegativeOperator(SSEData& ssedata, unsigned int leg) const{
+    return true;
+}
+
+void SpecialUpdates(SSEData& ssedata) const{}
 
