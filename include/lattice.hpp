@@ -63,9 +63,14 @@ namespace qmc{
             virtual int  GetLoopType(SSEData& ssedata, unsigned int leg) const = 0;
             virtual std::vector<double> GetPathProbs(SSEData& ssedata, unsigned int leg) const = 0;
             virtual unsigned int GetOperatorType(SSEData& ssedata, unsigned int leg) const = 0;
+            virtual unsigned int GetOperatorType(std::vector<Spin> spn_state) const = 0;
             virtual double GetOperatorWeight(SSEData& ssedata, unsigned int leg) const = 0;
+            virtual double GetOperatorWeight(int oprtr_type) const = 0;
             virtual bool IsNegativeOperator(SSEData& ssedata, unsigned int leg) const = 0;
             virtual void SpecialUpdates(SSEData& ssedata) const = 0;
+            virtual bool IsDiagonal(SSEData& ssedata, unsigned int leg) const = 0;
+            virtual bool IsDiagonal(int oprtr_type) const = 0;
+            virtual std::vector<Spin> Propagate(std::vector<Spin> spn_state, unsigned int oprtr_type) const = 0;
 
         protected:
         private:

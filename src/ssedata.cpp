@@ -218,6 +218,8 @@ void SSEData::LinkVertex(unsigned int vertex_0, unsigned int vertex_1){
 //! Resets the link_vertex to -1
 void SSEData::ResetLinkVertex(){
     link_vertex = std::vector<int>(4*num_time_slots,-1);
+    v_first_ = std::vector<int>(GetSpinNumber(),-1);
+    v_last_  = std::vector<int>(GetSpinNumber(),-1);
 }
 
 //! Returns the next leg index for a SW&R procedure

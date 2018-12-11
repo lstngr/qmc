@@ -33,11 +33,9 @@ namespace qmc{
         private:
             void DiagUpdate();
             void LinkVertices();
-            void OperatorLoop(std::vector<int> const& pos_first, bool all_links_empty=false);
-            void OperatorLoopSwenWang(std::vector<int> const& pos_first); // Deprecated
-            void OperatorLoopWolff(std::vector<int> const& pos_first, bool all_links_empty=false); // Migrate to OperatorLoop
-            bool AuthInsert(); // Deprecated...?
-            bool AuthRemove(); // Same?
+            void OperatorLoop(bool all_links_empty=false);
+            bool AuthInsert(double weight=0.5); // Deprecated...?
+            bool AuthRemove(double weight=0.5); // Same?
             std::vector<unsigned int> LegToSpins(unsigned int idx_leg) const; // Migrate to SSEData
             void UpdateObservables() const;
 

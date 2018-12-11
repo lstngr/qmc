@@ -135,24 +135,22 @@ void MCStep::DiagUpdate(){
 
     // Iterate over all possible operator positions
     for(size_t i=0; i<sse_data->GetOperatorNumber(false); i++){
+        unsigned int bond_num(random_bond(rdm_engine));
         if(sse_data->GetOperator(i)==-1){ // No operator here
-            unsigned int bond_num(random_bond(rdm_engine));
-            std::vector<int> random_bond_spins(sse_data->GetBondSpins(bond_num));
-            if((random_bond_spins[0] != random_bond_spins[1]) && AuthInsert()){
+            std::vector<Spin> random_bond_spins(sse_data->GetBondSpins(bond_num));
+            int diag_oprtr_type(lattice->GetOperatorType(random_bond_spins));
+            if(diag_oprtr_type!=-1 && AuthInsert(lattice->GetOperatorWeight(diag_oprtr_type))){
                 // Try insertion
-                LOG(3,"Diagonal Insertion (bond " << bond_num << ", spins " << random_bond_spins[0] << " " << random_bond_spins[1] << ")" << std::endl);
-                sse_data->SetOperator(i, 2 * bond_num);
+                sse_data->SetOperator(i, diag_oprtr_type + 2 * bond_num,true);
             }
         }
-        else if(sse_data->GetOperator(i)%2==0){
-            if(AuthRemove()){
-                LOG(3,"Diagonal Removal (operator " << i << ")" << std::endl);
-                sse_data->SetOperator(i,-1);
+        else if(lattice->IsDiagonal(sse_data->GetOperator(i))){
+            if(AuthRemove(lattice->GetOperatorWeight(sse_data->GetOperator(i)))){
+                sse_data->SetOperator(i,-1,true);
             }
         }
         else{ // Off-Diagonal operator, update spins
-            unsigned int bond = sse_data->GetOperator(i)/2;
-            sse_data->FlipSpins(bond);
+            sse_data->UpdateSpins(i);
         }
     } // for over op_chain
 
@@ -175,8 +173,6 @@ void MCStep::DiagUpdate(){
 void MCStep::LinkVertices(){
 
     sse_data->ResetLinkVertex();
-    std::vector<int> pos_last (lattice->GetSpinNumber(),-1);
-    std::vector<int> pos_first(lattice->GetSpinNumber(),-1);
     bool all_links_empty(true);
 
     // Link operators from 0->L-1
@@ -190,25 +186,25 @@ void MCStep::LinkVertices(){
 
             LOG(4,"pos_oprtr=" << pos_oprtr << ", spins " << idx_spin[0] << " " << idx_spin[1] << std::endl);
 
-            if(pos_last[idx_spin[0]] != -1)
-                sse_data->LinkVertex(pos_last[idx_spin[0]],pos_oprtr);
+            if(sse_data->GetVLast(idx_spin[0]) != -1)
+                sse_data->LinkVertex(sse_data->GetVLast(idx_spin[0]),pos_oprtr);
             else
-                pos_first[idx_spin[0]] = pos_oprtr;
+                sse_data->SetVFirst(idx_spin[0], pos_oprtr);
 
-            if(pos_last[idx_spin[1]] != -1)
-                sse_data->LinkVertex(pos_last[idx_spin[1]],pos_oprtr+1);
+            if(sse_data->GetVLast(idx_spin[1]) != -1)
+                sse_data->LinkVertex(sse_data->GetVLast(idx_spin[1]),pos_oprtr+1);
             else
-                pos_first[idx_spin[1]] = pos_oprtr + 1;
+                sse_data->SetVFirst(idx_spin[1], pos_oprtr + 1);
 
-            pos_last[idx_spin[0]] = pos_oprtr + 2;
-            pos_last[idx_spin[1]] = pos_oprtr + 3;
+            sse_data->SetVLast(idx_spin[0], pos_oprtr + 2);
+            sse_data->SetVLast(idx_spin[1], pos_oprtr + 3);
         }
     }
 
     // Link across last time boundary L-1->0
-    for(unsigned int i=0; i<pos_first.size(); i++){
-        if(pos_first[i] != -1)
-            sse_data->LinkVertex(pos_first[i],pos_last[i]);
+    for(unsigned int i=0; i<sse_data->GetSpinNumber(); i++){
+        if(sse_data->GetVFirst(i) != -1)
+            sse_data->LinkVertex(sse_data->GetVFirst(i),sse_data->GetVLast(i));
     }
 
 #if LOG_LEVEL > 2
@@ -216,86 +212,9 @@ void MCStep::LinkVertices(){
     std::cerr << std::endl;
 #endif // LOG_LEVEL > 1
 
-    this->OperatorLoop(pos_first,all_links_empty);
+    this->OperatorLoop(all_links_empty);
 }
 
-//! Selects the pre-configured operator loop to use.
-/*!
- * Possible operator loops are, currently:
- * 1. Swendsen-Wang (qmc::MCStep::LoopMethod="swenwang")
- * 2. Wolff (qmc::MCStep::LoopMethod="wolff")
- * \param pos_first Vector containing the leg index where a spin is first used.
- * \param all_links_empty Indicates no operators are inserted.
- */
-void MCStep::OperatorLoop(std::vector<int> const& pos_first, bool all_links_empty) {
-    if(LoopMethod=="swenwang")
-        OperatorLoopSwenWang(pos_first);
-    else if (LoopMethod=="wolff")
-        OperatorLoopWolff(pos_first,all_links_empty);
-}
-
-//! Browses operator loops and flips them (Swendsen-Wang Method)
-/*!
- * This method follows the linked vertex list created through
- * qmc::MCStep::LinkVertices to map operator loops. Occasionally, the spins
- * along each loop will be flipped (which may in some case mean the associated
- * operator type changes). Single spins define a loop on their own and might
- * also be flipped with probability 1/2.
- * \param pos_first Vector containing the leg index where a spin is first used.
- */
-void MCStep::OperatorLoopSwenWang(std::vector<int> const& pos_first){
-    LOG(2,"Entering OperatorLoop" << std::endl << std::endl);
-
-    // First loop: Decides which oprtrs/spins to flip
-    for (unsigned int idx_leg(0); idx_leg<4*sse_data->GetOperatorNumber(false); idx_leg+=2) {
-        // Needs to be int for while exit criterion
-        int idx_loop(idx_leg);
-        LOG(4,"Just set idx_loop=" << idx_loop << std::endl);
-        if (sse_data->GetLink(idx_loop) >= 0) {
-            // Determine if loop will be flipped:
-            // -1 will not be, -2 will be,
-            // Note these happen with equal probabilities (see random_prob)
-            int val_loop(-1 - std::round(random_prob(rdm_engine)));
-            LOG(3,"Initial idx_loop=" << idx_loop << " with val_loop=" << val_loop << std::endl);
-            do{
-                LOG(3,"Set val_loop in " << sse_data->GetLink(idx_loop) << "/" << idx_loop << std::endl);
-                sse_data->SetLink(sse_data->GetLink(idx_loop),val_loop); // Sets 'previous' link to val_loop
-                sse_data->SetLink(idx_loop,val_loop); // Sets own since link no longer needed
-                if (val_loop==-2) {
-                    LOG(3,"Will set op:" << sse_data->GetOperator(idx_loop/4) << "->" << (sse_data->GetOperator(idx_loop/4)^1 << 0) << std::endl);
-                    sse_data->FlipOperator(idx_loop/4); // Last bit flip to indicate diag<->off-diag
-                }
-                LOG(3,"Switch to neighbour idx_loop=" << (idx_loop ^ 1 << 0) << std::endl);
-                idx_loop = sse_data->SwitchAndReverse(idx_loop);
-                LOG(3,"Goto next idx_loop=" << idx_loop << std::endl << std::endl);
-            } while (idx_loop >= 0);
-            // The loop exists when idx_loop points to a now modified location.
-        }
-    }
-
-    // Second loop: Flip spins that are tagged either -1 or -2 using pos_first
-    for (unsigned int idx_spin(0); idx_spin < pos_first.size(); idx_spin++) {
-        int val_vertex(0);
-        if (pos_first[idx_spin] != -1)
-            val_vertex = sse_data->GetLink(pos_first[idx_spin]);
-        else
-            val_vertex = -1;
-        if ((pos_first[idx_spin] == -1 && std::round(random_prob(rdm_engine))) || val_vertex == -2 ) {
-            // If spin is marked as single and with a 50% chance,
-            // OR if the attached vertex value mentions a flip,
-            // Flip the spin!
-            sse_data->FlipSpin(idx_spin);
-        }
-    }
-
-#if LOG_LEVEL > 1
-    std::cerr << "After OperatorLoop: ";
-    sse_data->PrintOperators();
-    sse_data->PrintSpins();
-    std::cerr << std::endl;
-#endif // LOG_LEVEL > 1
-
-}
 //! Browses operator loops and flips them (Wolff Method)
 /*!
  * This method follows the linked vertex list created through
@@ -306,7 +225,7 @@ void MCStep::OperatorLoopSwenWang(std::vector<int> const& pos_first){
  * \param pos_first Vector containing the leg index where a spin is first used.
  * \param all_links_empty Indicates no operators are inserted.
  */
-void MCStep::OperatorLoopWolff(std::vector<int> const& pos_first, bool all_links_empty){
+void MCStep::OperatorLoop(bool all_links_empty){
     LOG(2,"Entering OperatorLoop" << std::endl << std::endl);
 
     unsigned int leg_counter(0); // Counts legs to exit following loops
@@ -366,8 +285,8 @@ void MCStep::OperatorLoopWolff(std::vector<int> const& pos_first, bool all_links
     }
 
     // Second loop: Flip free spins
-    for (unsigned int idx_spin(0); idx_spin < pos_first.size(); idx_spin++) {
-        if (pos_first[idx_spin] == -1 && random_prob(rdm_engine) < 0.5)
+    for (unsigned int idx_spin(0); idx_spin < sse_data->GetSpinNumber(); idx_spin++) {
+        if (sse_data->GetVFirst(idx_spin) == -1 && random_prob(rdm_engine) < 0.5)
             sse_data->FlipSpin(idx_spin);
     }
 
