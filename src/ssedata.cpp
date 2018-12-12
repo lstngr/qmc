@@ -76,12 +76,12 @@ void SSEData::SetSpin(unsigned int idx_spin, int two_s, int two_sz){
     SetSpin(idx_spin, Spin(two_s,two_sz));
 }
 
-void SSEData::RaiseSpin(unsigned int idx_spin, int amount){
-    bond_vertex_[idx_spin/4][idx_spin%4].Raise(amount);
+void SSEData::RaiseSpin(unsigned int idx_leg, int amount){
+    bond_vertex_[idx_leg/4][idx_leg%4].Raise(amount);
 }
 
-void SSEData::LowerSpin(unsigned int idx_spin, unsigned int amount){
-    RaiseSpin(idx_spin,-amount);
+void SSEData::LowerSpin(unsigned int idx_leg, unsigned int amount){
+    RaiseSpin(idx_leg,-amount);
 }
 
 //! Get the value of an operator (type and position).
@@ -110,9 +110,21 @@ int SSEData::GetOperatorBond(unsigned int idx_oprtr) const{
  * \param idx_oprtr The index (p) of the operator to set.
  * \param val_oprtr s(p)=2*b+a-1 value to set the given operator to.
  */
-void SSEData::SetOperator(unsigned int idx_oprtr, int val_oprtr){
+void SSEData::SetOperator(unsigned int idx_oprtr, int oprtr_type, int oprtr_bond, bool update_bond_vrtx){
     // Should implement index and value checks
-    oprtr[idx_oprtr] = val_oprtr;
+    // Note: bool mainly for diagonal insertions/removals
+    oprtr[idx_oprtr] = oprtr_type + num_oprtr_type_ * oprtr_bond;
+    if(update_bond_vrtx){
+        if(oprtr_type==-1)
+            bond_vertex_[idx_oprtr] = std::vector<Spin>(4,Spin(-1,0));
+        else if(lattice->IsDiagonal(oprtr_type)){
+            unsigned int thebond(GetOperatorBond(idx_oprtr));
+            // Okay while diag update since alpha being propagated
+            std::vector<Spin> d_spins(this->GetBondSpins(thebond));
+            d_spins.insert(std::end(d_spins), std::begin(d_spins), std::end(d_spins));
+            bond_vertex_[idx_oprtr] = d_spins;
+        }
+    }
 }
 
 //! Switches the operator type at idx_oprtr
@@ -161,14 +173,6 @@ std::vector<Spin> SSEData::GetBondSpins(unsigned int num_bond) const{
     return spins;
 }
 
-//! Flips the spin attached to the given index
-/*!
- * \param idx_spin Index of the bond. Should be < than
- */
-void SSEData::FlipSpin(unsigned int idx_spin){
-    spins[idx_spin] *= -1;
-}
-
 void SSEData::UpdateSpins(unsigned int idx_oprtr){
     // TODO - Fix DIRTY stuff
     unsigned int b = GetOperatorBond(idx_oprtr);
@@ -177,18 +181,6 @@ void SSEData::UpdateSpins(unsigned int idx_oprtr){
     curSpin = lattice->Propagate(curSpin, a);
     SetSpin(b, curSpin[0]);
     SetSpin((b+1)%spins.size(), curSpin[1]);
-}
-
-//! Flips the spins in a given bond
-/*!
- * Looks up the spins belonging to a given bond and flips them. Useful when
- * encountering an off-diagonal operator during a MC sweep.
- * \param num_bond Index of the bond. Should be < than the number of spins.
- */
-void SSEData::FlipSpins(unsigned int num_bond){
-    std::vector<unsigned int> idx_spin(lattice->GetSpinsIndex(num_bond));
-    spins[idx_spin[0]] *= -1;
-    spins[idx_spin[1]] *= -1;
 }
 
 //! Prints operators for debbuging purposes
@@ -276,6 +268,13 @@ int SSEData::SwitchAndContinue(int idx_leg) const {
     return SwitchAndReverse(ContinueStraight(idx_leg));
 }
 
+void SSEData::UpdateSpinState(){
+    for(unsigned int i=0;i<lattice->GetSpinNumber();i++){
+        unsigned int first_leg(v_first_[i]);
+        spins[i] = bond_vertex_[first_leg/4][first_leg%4];
+    }
+}
+
 //! Expands the operator time slots until the system equilibriates
 /*!
  * Controls the expansion of the oprtr vector. The expansion factor is obtained
@@ -290,6 +289,8 @@ void SSEData::Equilibrate(double expansion_factor) {
         int delta_oprtr(std::ceil(thres_oprtr-num_time_slots));
         num_time_slots += delta_oprtr;
         std::vector<int> new_slots(delta_oprtr,-1);
+        std::vector<std::vector<Spin>> new_vrtx(delta_oprtr,std::vector<Spin>(4,Spin(-1,0)));
         oprtr.insert(oprtr.end(),new_slots.begin(),new_slots.end());
+        bond_vertex_.insert(bond_vertex_.end(),new_vrtx.begin(),new_vrtx.end());
     }
 }

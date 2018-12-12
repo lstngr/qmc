@@ -138,12 +138,12 @@ void MCStep::DiagUpdate(){
             int diag_oprtr_type(lattice->GetOperatorType(random_bond_spins));
             if(diag_oprtr_type!=-1 && AuthInsert(lattice->GetOperatorWeight(diag_oprtr_type))){
                 // Try insertion
-                sse_data->SetOperator(i, diag_oprtr_type + 2 * bond_num,true);
+                sse_data->SetOperator(i, diag_oprtr_type, bond_num,true);
             }
         }
         else if(lattice->IsDiagonal(sse_data->GetOperatorType(i))){
             if(AuthRemove(lattice->GetOperatorWeight(sse_data->GetOperatorType(i)))){
-                sse_data->SetOperator(i,-1,true);
+                sse_data->SetOperator(i,-1,0,true);
             }
         }
         else{ // Off-Diagonal operator, update spins
@@ -180,7 +180,7 @@ void MCStep::LinkVertices(){
             all_links_empty = false;
             int pos_oprtr(4*i);
             std::vector<unsigned int> idx_spin(lattice->GetSpinsIndex(
-                        sse_data->GetOperator(i)/2
+                        sse_data->GetOperatorBond(i)
                         ));
 
             LOG(4,"pos_oprtr=" << pos_oprtr << ", spins " << idx_spin[0] << " " << idx_spin[1] << std::endl);
@@ -248,7 +248,7 @@ void MCStep::OperatorLoop(bool all_links_empty){
 
                     // Get Moves
                     std::vector<double> path_probs(lattice->GetPathProbs(*sse_data,idx_loop));
-                    std::vector<int> comb_probs;
+                    std::vector<double> comb_probs;
                     std::partial_sum(path_probs.begin(), path_probs.end(), comb_probs);
                     // Choose Move and update
                     double path_selector = random_prob(rdm_engine);
@@ -273,7 +273,11 @@ void MCStep::OperatorLoop(bool all_links_empty){
                         sse_data->RaiseSpin(idx_loop);
                     else
                         sse_data->LowerSpin(idx_loop);
-                    sse_data->SetOperator(idx_loop/4, lattice->GetOperatorType(*sse_data, idx_loop));
+                    unsigned int thebond(sse_data->GetOperatorBond(idx_loop/4));
+                    sse_data->SetOperator(idx_loop/4,
+                            lattice->GetOperatorType(*sse_data, idx_loop),
+                            thebond);
+                    // TODO -- Fix bond determination
 
                     // Update leg counter
                     leg_counter++;
@@ -286,8 +290,7 @@ void MCStep::OperatorLoop(bool all_links_empty){
 
     // Second loop: Flip free spins
     for (unsigned int idx_spin(0); idx_spin < lattice->GetSpinNumber(); idx_spin++) {
-        if (sse_data->GetVFirst(idx_spin) == -1 && random_prob(rdm_engine) < 0.5)
-            sse_data->FlipSpin(idx_spin);
+        if (sse_data->GetVFirst(idx_spin) == -1 && random_prob(rdm_engine) < 0.5){}// Choose random spin value
     }
 
 #if LOG_LEVEL > 1
@@ -334,7 +337,6 @@ bool MCStep::AuthRemove(double weight) {
  * for their final value.
  */
 void MCStep::UpdateObservables() const {
-    for(auto obsrv : observables_) {
+    for(auto obsrv : observables_)
         obsrv->UpdateObservable(sse_data);
-    }
 }

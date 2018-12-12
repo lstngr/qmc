@@ -38,15 +38,13 @@ namespace qmc{
             int ContinueStraight (int idx_leg) const;
             int SwitchAndContinue(int idx_leg) const;
 
-            void SetOperator(unsigned int idx_oprtr, int val_oprtr=-1, bool update_bond_vrtx=false);
+            void SetOperator(unsigned int idx_oprtr, int oprtr_type=-1, int oprtr_bond=0, bool update_bond_vrtx=false);
             void FlipOperator(unsigned int idx_oprtr); // Deprecated
             void SetLink(unsigned int vertex, int val_vertex);
             void LinkVertex(unsigned int vertex_0, unsigned int vertex_1);
-            void FlipSpins(unsigned int num_bond); // Deprecated
-            void FlipSpin(unsigned int idx_spin); // Deprecated
             void UpdateSpins(unsigned int idx_oprtr);
-            void RaiseSpin(unsigned int idx_spin, int amount=1);
-            void LowerSpin(unsigned int idx_spin, unsigned int amount=1);
+            void RaiseSpin(unsigned int idx_leg, int amount=1);
+            void LowerSpin(unsigned int idx_leg, unsigned int amount=1);
             void ResetLinkVertex();
             int  GetVFirst(unsigned int idx_spin) const;
             void SetVFirst(unsigned int idx_spin, unsigned int idx_leg);

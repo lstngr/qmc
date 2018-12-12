@@ -2,6 +2,7 @@
 #define QMC_LATTICE_HPP_
 
 #include <vector>
+#include <ostream>
 
 namespace qmc{
 
@@ -16,9 +17,14 @@ namespace qmc{
         int two_norm;
         int two_sz;
     };
-    
+
     bool operator==(const Spin& a, const Spin& b){
         return a.two_sz==b.two_sz && a.two_norm==b.two_norm;
+    }
+
+    std::ostream& operator<<(std::ostream& stream, const Spin& spin){
+        stream << "("<< double(spin.two_norm/2) << "," << double(spin.two_sz/2.) << ")";
+        return stream;
     }
 
     //! Base class managing Lattice structures.
@@ -68,14 +74,13 @@ namespace qmc{
             virtual unsigned int GetBondNumber() const = 0;
             virtual unsigned int HowManyOperators() const = 0;
             virtual unsigned int MaxTwoS() const = 0;
-
-            virtual bool IsLoopStart(SSEData& ssedata, unsigned int leg) const; // Def always true
-            virtual int  GetLoopType(SSEData& ssedata, unsigned int leg) const = 0;
-            virtual std::vector<double> GetPathProbs(SSEData& ssedata, unsigned int leg) const = 0;
-            virtual int GetOperatorType(SSEData& ssedata, unsigned int leg) const = 0;
-            virtual int GetOperatorType(std::vector<Spin> spn_state) const = 0;
-            virtual double GetOperatorWeight(SSEData& ssedata, unsigned int leg) const = 0;
-            virtual double GetOperatorWeight(int oprtr_type) const = 0;
+            virtual bool IsLoopStart(SSEData& ssedata, unsigned int leg) const = 0;
+            virtual int  GetLoopType(SSEData& ssedata, unsigned int leg) const;
+            virtual std::vector<double> FindPathProbs(SSEData& ssedata, unsigned int leg) const = 0;
+            virtual int FindOperatorType(SSEData& ssedata, unsigned int leg) const = 0;
+            virtual int FindOperatorType(std::vector<Spin> spn_state) const = 0;
+            virtual double FindOperatorWeight(SSEData& ssedata, unsigned int leg) const = 0;
+            virtual double FindOperatorWeight(int oprtr_type) const = 0;
             virtual bool IsNegativeOperator(SSEData& ssedata, unsigned int leg) const = 0;
             virtual void SpecialUpdates(SSEData& ssedata) const = 0;
             virtual bool IsDiagonal(SSEData& ssedata, unsigned int leg) const = 0;
@@ -99,17 +104,18 @@ namespace qmc{
             unsigned int GetSpinNumber() const override;
             unsigned int GetBondNumber() const override;
             unsigned int HowManyOperators() const override{return 2;}
-            unsigned int MaxTwoS() const override{return 1;};
-            bool IsLoopStart(SSEData& ssedata, unsigned int leg) const override; // Def always true
-            int  GetLoopType(SSEData& ssedata, unsigned int leg) const override;
-            std::vector<double> GetPathProbs(SSEData& ssedata, unsigned int leg) const override;
-            int GetOperatorType(SSEData& ssedata, unsigned int leg) const override;
-            int GetOperatorType(std::vector<Spin> spn_state) const override;
-            double GetOperatorWeight(SSEData& ssedata, unsigned int leg) const override;
-            double GetOperatorWeight(int oprtr_type) const override = 0;
+            unsigned int MaxTwoS() const override{return 1;}
+            bool IsLoopStart(SSEData& ssedata, unsigned int leg) const override;
+            std::vector<double> FindPathProbs(SSEData& ssedata, unsigned int leg) const override;
+            int FindOperatorType(SSEData& ssedata, unsigned int leg) const override;
+            int FindOperatorType(std::vector<Spin> spn_state) const override;
+            double FindOperatorWeight(SSEData& ssedata, unsigned int leg) const override;
+            double FindOperatorWeight(int oprtr_type) const override;
             bool IsNegativeOperator(SSEData& ssedata, unsigned int leg) const override;
             void SpecialUpdates(SSEData& ssedata) const override;
+            bool IsDiagonal(SSEData& ssedata, unsigned int leg) const override;
             bool IsDiagonal(int oprtr_type) const override;
+            std::vector<Spin> Propagate(std::vector<Spin> spn_state, unsigned int oprtr_type) const override;
         protected:
         private:
             unsigned int length; //!< Number of sites (and bonds) of the lattice.
