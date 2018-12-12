@@ -5,8 +5,8 @@
 #include <random>
 #include <ostream>
 #include "debugconf.hpp"
-#include "lattice.hpp"
 #include "ssedata.hpp"
+#include "lattice.hpp"
 #include "observable.hpp"
 #include "iomanager.hpp"
 

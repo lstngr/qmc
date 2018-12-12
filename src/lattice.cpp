@@ -1,112 +1,123 @@
 #include "lattice.hpp"
 #include "ssedata.hpp"
 
-using namespace qmc;
+namespace qmc{
 
-////////////////////////////
-// LATTICE /////////////////
-////////////////////////////
-
-//! Lattice class constructor
-Lattice::Lattice(){}
-
-int Lattice::GetLoopType(SSEData& ssedata, unsigned int leg) const{
-    return -ssedata.GetLegSpin(leg).two_sz;
-}
-
-
-////////////////////////////
-// LATTICE1D ///////////////
-////////////////////////////
-
-//! Lattice1D class constructor
-/*!
- * Instantiates a linear structure containing spins. This structure is cyclic
- * (hence, the number of spins is also the number of bonds).
- * \param length Length of the lattice, ie. the site number.
- */
-Lattice1D::Lattice1D(unsigned int length): length(length){}
-
-//! Returns spin indexes of a specific bond
-/*!
- * Returns the two indexes of each spin belonging to a specific bond.
- * \param num_bond Targeted bond index
- * \return Vector containing the indexes of the spins linked by bond num_bond.
- */
-std::vector<unsigned int> Lattice1D::GetSpinsIndex(unsigned int num_bond) const{
-    return std::vector<unsigned int>{num_bond,(num_bond+1)%GetBondNumber()};
-}
-
-//! Returns the number of spins in the system.
-//! \return Number of spins
-unsigned int Lattice1D::GetSpinNumber() const{
-    return length;
-}
-
-//! Returns the number of operators in the system.
-//! \return Number of bonds
-unsigned int Lattice1D::GetBondNumber() const{
-    return length;
-}
-
-bool Lattice1D::IsLoopStart(SSEData& ssedata, unsigned int leg) const{
-    int oprtr(ssedata.GetOperator(leg/4));
-    if(oprtr!=-1)
-        return true;
-    return false;
-}
-
-std::vector<double> Lattice1D::FindPathProbs(SSEData& /*ssedata*/, unsigned int /*leg*/) const{
-    return std::vector<double>({.0,.0,.0,1.});
-}
-
-int Lattice1D::FindOperatorType(SSEData& ssedata, unsigned int leg) const{
-    std::vector<Spin> local_vrtx(ssedata.GetBondVrtx(leg/4));
-    return FindOperatorType(local_vrtx);
-}
-
-int Lattice1D::FindOperatorType(std::vector<Spin> spn_state) const{
-    if(spn_state.size()==2) // Append to itself if only two spins (ie diag op)
-        spn_state.insert(std::end(spn_state), std::begin(spn_state), std::end(spn_state));
-    if(spn_state[0]==spn_state[1]){ return -1; }
-    else if(spn_state[0]==spn_state[2]){ return 0; }
-    return 1;
-}
-
-double Lattice1D::FindOperatorWeight(SSEData& ssedata, unsigned int leg) const{
-    return FindOperatorWeight(ssedata.GetOperatorType(leg/4));
-}
-
-double Lattice1D::FindOperatorWeight(int oprtr_type) const{
-    if(oprtr_type!=-1)
-        return 0.5;
-    return .0;
-}
-
-bool Lattice1D::IsNegativeOperator(SSEData& /*ssedata*/, unsigned int /*leg*/) const{
-    return false;
-}
-
-void Lattice1D::SpecialUpdates(SSEData& /*ssedata*/) const{}
-
-bool Lattice1D::IsDiagonal(int oprtr_type) const{
-    if(oprtr_type==0)
-        return true;
-    return false;
-}
-
-bool Lattice1D::IsDiagonal(SSEData& ssedata, unsigned int leg) const{
-    return IsDiagonal(ssedata.GetOperatorType(leg/4));
-}
-
-std::vector<Spin> Lattice1D::Propagate(std::vector<Spin> spn_state, unsigned int oprtr_type) const{
-    if(oprtr_type==0)
-        return spn_state;
-    // Else, off-diag
-    if(spn_state[0].two_sz<0){
-        spn_state[0].Raise(); spn_state[1].Lower();
-    }else{
-        spn_state[0].Lower(); spn_state[1].Raise();
+    bool operator==(const Spin& a, const Spin& b){
+        return a.two_sz==b.two_sz && a.two_norm==b.two_norm;
     }
-    return spn_state;
-}
+
+    std::ostream& operator<<(std::ostream& stream, const Spin& spin){
+        stream << "("<< double(spin.two_norm/2) << "," << double(spin.two_sz/2.) << ")";
+        return stream;
+    }
+
+    ////////////////////////////
+    // LATTICE /////////////////
+    ////////////////////////////
+
+    //! Lattice class constructor
+    Lattice::Lattice(){}
+
+    int Lattice::GetLoopType(SSEData& ssedata, unsigned int leg) const{
+        return -ssedata.GetLegSpin(leg).two_sz;
+    }
+
+
+    ////////////////////////////
+    // LATTICE1D ///////////////
+    ////////////////////////////
+
+    //! Lattice1D class constructor
+    /*!
+     * Instantiates a linear structure containing spins. This structure is cyclic
+     * (hence, the number of spins is also the number of bonds).
+     * \param length Length of the lattice, ie. the site number.
+     */
+    Lattice1D::Lattice1D(unsigned int length): length(length){}
+
+    //! Returns spin indexes of a specific bond
+    /*!
+     * Returns the two indexes of each spin belonging to a specific bond.
+     * \param num_bond Targeted bond index
+     * \return Vector containing the indexes of the spins linked by bond num_bond.
+     */
+    std::vector<unsigned int> Lattice1D::GetSpinsIndex(unsigned int num_bond) const{
+        return std::vector<unsigned int>{num_bond,(num_bond+1)%GetBondNumber()};
+    }
+
+    //! Returns the number of spins in the system.
+    //! \return Number of spins
+    unsigned int Lattice1D::GetSpinNumber() const{
+        return length;
+    }
+
+    //! Returns the number of operators in the system.
+    //! \return Number of bonds
+    unsigned int Lattice1D::GetBondNumber() const{
+        return length;
+    }
+
+    bool Lattice1D::IsLoopStart(SSEData& ssedata, unsigned int leg) const{
+        int oprtr(ssedata.GetOperator(leg/4));
+        if(oprtr!=-1)
+            return true;
+        return false;
+    }
+
+    std::vector<double> Lattice1D::FindPathProbs(SSEData& /*ssedata*/, unsigned int /*leg*/) const{
+        return std::vector<double>({.0,.0,.0,1.});
+    }
+
+    int Lattice1D::FindOperatorType(SSEData& ssedata, unsigned int leg) const{
+        std::vector<Spin> local_vrtx(ssedata.GetBondVrtx(leg/4));
+        return FindOperatorType(local_vrtx);
+    }
+
+    int Lattice1D::FindOperatorType(std::vector<Spin> spn_state) const{
+        if(spn_state.size()==2) // Append to itself if only two spins (ie diag op)
+            spn_state.insert(std::end(spn_state), std::begin(spn_state), std::end(spn_state));
+        if(spn_state[0]==spn_state[1]){ return -1; }
+        else if(spn_state[0]==spn_state[2]){ return 0; }
+        return 1;
+    }
+
+    double Lattice1D::FindOperatorWeight(SSEData& ssedata, unsigned int leg) const{
+        return FindOperatorWeight(ssedata.GetOperatorType(leg/4));
+    }
+
+    double Lattice1D::FindOperatorWeight(int oprtr_type) const{
+        if(oprtr_type!=-1)
+            return 0.5;
+        return .0;
+    }
+
+    bool Lattice1D::IsNegativeOperator(SSEData& /*ssedata*/, unsigned int /*leg*/) const{
+        return false;
+    }
+
+    void Lattice1D::SpecialUpdates(SSEData& /*ssedata*/) const{}
+
+    bool Lattice1D::IsDiagonal(int oprtr_type) const{
+        if(oprtr_type==0)
+            return true;
+        return false;
+    }
+
+    bool Lattice1D::IsDiagonal(SSEData& ssedata, unsigned int leg) const{
+        return IsDiagonal(ssedata.GetOperatorType(leg/4));
+    }
+
+    std::vector<Spin> Lattice1D::Propagate(std::vector<Spin> spn_state, unsigned int oprtr_type) const{
+        if(oprtr_type==0)
+            return spn_state;
+        // Else, off-diag
+        if(spn_state[0].two_sz<0){
+            spn_state[0].Raise(); spn_state[1].Lower();
+        }else{
+            spn_state[0].Lower(); spn_state[1].Raise();
+        }
+        return spn_state;
+    }
+
+} // namespace qmc

@@ -17,16 +17,9 @@ namespace qmc{
         int two_norm;
         int two_sz;
     };
-
-    bool operator==(const Spin& a, const Spin& b){
-        return a.two_sz==b.two_sz && a.two_norm==b.two_norm;
-    }
-
-    std::ostream& operator<<(std::ostream& stream, const Spin& spin){
-        stream << "("<< double(spin.two_norm/2) << "," << double(spin.two_sz/2.) << ")";
-        return stream;
-    }
-
+    bool operator==(const Spin& a, const Spin& b);
+    std::ostream& operator<<(std::ostream& stream, const Spin& spin);
+    
     //! Base class managing Lattice structures.
     /*!
      * This class is meant to enable OOP programmation later in the code. It

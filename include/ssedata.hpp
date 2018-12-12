@@ -3,10 +3,12 @@
 
 #include <vector>
 #include <random>
-#include "lattice.hpp"
 #include "debugconf.hpp"
 
 namespace qmc{
+    
+    class Lattice;
+    struct Spin;
 
     /*! \brief Class containing the system's spin state.
      *

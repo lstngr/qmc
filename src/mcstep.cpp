@@ -135,14 +135,14 @@ void MCStep::DiagUpdate(){
         unsigned int bond_num(random_bond(rdm_engine));
         if(sse_data->GetOperator(i)==-1){ // No operator here
             std::vector<Spin> random_bond_spins(sse_data->GetBondSpins(bond_num));
-            int diag_oprtr_type(lattice->GetOperatorType(random_bond_spins));
-            if(diag_oprtr_type!=-1 && AuthInsert(lattice->GetOperatorWeight(diag_oprtr_type))){
+            int diag_oprtr_type(lattice->FindOperatorType(random_bond_spins));
+            if(diag_oprtr_type!=-1 && AuthInsert(lattice->FindOperatorWeight(diag_oprtr_type))){
                 // Try insertion
                 sse_data->SetOperator(i, diag_oprtr_type, bond_num,true);
             }
         }
         else if(lattice->IsDiagonal(sse_data->GetOperatorType(i))){
-            if(AuthRemove(lattice->GetOperatorWeight(sse_data->GetOperatorType(i)))){
+            if(AuthRemove(lattice->FindOperatorWeight(sse_data->GetOperatorType(i)))){
                 sse_data->SetOperator(i,-1,0,true);
             }
         }
@@ -247,9 +247,9 @@ void MCStep::OperatorLoop(bool all_links_empty){
                         sse_data->LowerSpin(idx_loop);
 
                     // Get Moves
-                    std::vector<double> path_probs(lattice->GetPathProbs(*sse_data,idx_loop));
-                    std::vector<double> comb_probs;
-                    std::partial_sum(path_probs.begin(), path_probs.end(), comb_probs);
+                    std::vector<double> path_probs(lattice->FindPathProbs(*sse_data,idx_loop));
+                    std::vector<double> comb_probs(path_probs.size());
+                    std::partial_sum(path_probs.begin(), path_probs.end(), comb_probs.begin());
                     // Choose Move and update
                     double path_selector = random_prob(rdm_engine);
                     if(path_selector < comb_probs[0]){
@@ -275,7 +275,7 @@ void MCStep::OperatorLoop(bool all_links_empty){
                         sse_data->LowerSpin(idx_loop);
                     unsigned int thebond(sse_data->GetOperatorBond(idx_loop/4));
                     sse_data->SetOperator(idx_loop/4,
-                            lattice->GetOperatorType(*sse_data, idx_loop),
+                            lattice->FindOperatorType(*sse_data, idx_loop),
                             thebond);
                     // TODO -- Fix bond determination
 

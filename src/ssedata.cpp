@@ -1,4 +1,5 @@
 #include "ssedata.hpp"
+#include "lattice.hpp"
 #include <iostream>
 #include <iomanip>
 
@@ -74,6 +75,14 @@ void SSEData::SetSpin(unsigned int idx_spin, Spin spn){
 
 void SSEData::SetSpin(unsigned int idx_spin, int two_s, int two_sz){
     SetSpin(idx_spin, Spin(two_s,two_sz));
+}
+
+Spin SSEData::GetLegSpin(unsigned int leg_idx) const{
+    return bond_vertex_[leg_idx/4][leg_idx%4];
+}
+
+std::vector<Spin> SSEData::GetBondVrtx(unsigned int oprtr_idx) const{
+    return bond_vertex_[oprtr_idx];
 }
 
 void SSEData::RaiseSpin(unsigned int idx_leg, int amount){
@@ -270,8 +279,9 @@ int SSEData::SwitchAndContinue(int idx_leg) const {
 
 void SSEData::UpdateSpinState(){
     for(unsigned int i=0;i<lattice->GetSpinNumber();i++){
-        unsigned int first_leg(v_first_[i]);
-        spins[i] = bond_vertex_[first_leg/4][first_leg%4];
+        int first_leg(v_first_[i]);
+        if(first_leg!=-1)
+            spins[i] = bond_vertex_[first_leg/4][first_leg%4];
     }
 }
 
