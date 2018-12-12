@@ -12,7 +12,6 @@ MCStep::MCStep(Lattice* const lattice) : lattice(lattice),beta(20), expansion_fa
 
     int op_str_length = 6; // Number of time slots
     measurement_frequency_ = 1000;
-    LoopMethod = "wolff";
     sse_data = new SSEData(op_str_length,lattice,&rdm_engine);
     // Initialize number generators
     random_bond = std::uniform_int_distribution<unsigned int>(0,lattice->GetBondNumber()-1);
@@ -35,8 +34,6 @@ MCStep::MCStep(Lattice* const lattice, const Configuration& sim_conf_)
     beta = sim_conf_.beta;
     expansion_factor = sim_conf_.expansion_factor;
     measurement_frequency_ = sim_conf_.measurement_frequency;
-    LoopMethod = sim_conf_.LoopMethod;
-    LOG(2,beta << " " << expansion_factor << " " << measurement_frequency_ << " " << LoopMethod << " " << lattice->GetBondNumber() << std::endl)
     sse_data = new SSEData(op_str_length,lattice,&rdm_engine);
     // Initialize number generators
     random_bond = std::uniform_int_distribution<unsigned int>(0,lattice->GetBondNumber()-1);
@@ -144,12 +141,14 @@ void MCStep::DiagUpdate(){
                 sse_data->SetOperator(i, diag_oprtr_type + 2 * bond_num,true);
             }
         }
-        else if(lattice->IsDiagonal(sse_data->GetOperator(i))){
-            if(AuthRemove(lattice->GetOperatorWeight(sse_data->GetOperator(i)))){
+        else if(lattice->IsDiagonal(sse_data->GetOperatorType(i))){
+            if(AuthRemove(lattice->GetOperatorWeight(sse_data->GetOperatorType(i)))){
                 sse_data->SetOperator(i,-1,true);
             }
         }
         else{ // Off-Diagonal operator, update spins
+            // Could call every iteration, but so prevents
+            // unnecessary computations.
             sse_data->UpdateSpins(i);
         }
     } // for over op_chain
@@ -202,7 +201,7 @@ void MCStep::LinkVertices(){
     }
 
     // Link across last time boundary L-1->0
-    for(unsigned int i=0; i<sse_data->GetSpinNumber(); i++){
+    for(unsigned int i=0; i<lattice->GetSpinNumber(); i++){
         if(sse_data->GetVFirst(i) != -1)
             sse_data->LinkVertex(sse_data->GetVFirst(i),sse_data->GetVLast(i));
     }
@@ -255,6 +254,7 @@ void MCStep::OperatorLoop(bool all_links_empty){
                     double path_selector = random_prob(rdm_engine);
                     if(path_selector < comb_probs[0]){
                         // Bounce
+                        // Revert spin change and looptype
                     }
                     else if(path_selector < comb_probs[1]){
                         // CS
@@ -285,7 +285,7 @@ void MCStep::OperatorLoop(bool all_links_empty){
     }
 
     // Second loop: Flip free spins
-    for (unsigned int idx_spin(0); idx_spin < sse_data->GetSpinNumber(); idx_spin++) {
+    for (unsigned int idx_spin(0); idx_spin < lattice->GetSpinNumber(); idx_spin++) {
         if (sse_data->GetVFirst(idx_spin) == -1 && random_prob(rdm_engine) < 0.5)
             sse_data->FlipSpin(idx_spin);
     }
@@ -305,9 +305,9 @@ void MCStep::OperatorLoop(bool all_links_empty){
  * state of the system).
  * \return Boolean allowing (or not) a insertion
  */
-bool MCStep::AuthInsert() {
+bool MCStep::AuthInsert(double weight) {
     unsigned int num_bond(lattice->GetBondNumber());
-    double threshold_accept(std::min(beta*num_bond / (2.*(sse_data->GetOperatorNumber(false)-sse_data->GetOperatorNumber())),1.0));
+    double threshold_accept(std::min(beta*num_bond*weight / (sse_data->GetOperatorNumber(false)-sse_data->GetOperatorNumber()),1.0));
 
     if(random_prob(rdm_engine) < threshold_accept)
         return true;
@@ -320,28 +320,13 @@ bool MCStep::AuthInsert() {
  * state of the system).
  * \return Boolean allowing (or not) a removal
  */
-bool MCStep::AuthRemove() {
+bool MCStep::AuthRemove(double weight) {
     unsigned int num_bond(lattice->GetBondNumber());
-    double threshold_remove(std::min(2.0 * (sse_data->GetOperatorNumber(false)-sse_data->GetOperatorNumber()+1.) / (beta*num_bond),1.0));
+    double threshold_remove(std::min((sse_data->GetOperatorNumber(false)-sse_data->GetOperatorNumber()+1.) / (beta*num_bond*weight),1.0));
 
     if(random_prob(rdm_engine) < threshold_remove)
         return true;
     return false;
-}
-
-//! Gets the spin indexes of a leg and its neighbour
-/*!
- * This function relies on a chain conversion from leg to operator, to bond and
- * finally to spin indexes. The first two ae implicitely defined in the
- * program's storage architecture, the last relies on Lattice::GetBondSpins.
- * \param idx_leg Index of the leg
- * \return The index of the spins attached to the operator using idx_leg
- */
-std::vector<unsigned int> MCStep::LegToSpins(unsigned int idx_leg) const {
-    int idx_oprtr(idx_leg/4);
-    int idx_bond(sse_data->GetOperator(idx_oprtr)/2);
-    std::vector<unsigned int> idx_spins(lattice->GetSpinsIndex(idx_bond));
-    return idx_spins;
 }
 
 /*! \brief Updates observable states

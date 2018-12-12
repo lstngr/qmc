@@ -21,16 +21,19 @@ namespace qmc{
             SSEData(unsigned int time_slots, Lattice* const lattice, std::mt19937* const rdm_engine);
             virtual ~SSEData();
             unsigned int GetOperatorNumber(bool inserted=true) const;
-            int GetSpin(unsigned int idx_spin) const; // Could combine with FlipSpins
+            Spin GetSpin(unsigned int idx_spin) const;
+            void SetSpin(unsigned int idx_spin, int two_s, int two_sz);
+            void SetSpin(unsigned int idx_spin, Spin spn);
             Spin GetLegSpin(unsigned int leg_idx) const;
             std::vector<Spin> GetBondVrtx(unsigned int oprtr_idx) const;
             int GetOperator(unsigned int idx_oprtr) const;
+            int GetOperatorType(unsigned int idx_oprtr) const;
+            int GetOperatorBond(unsigned int idx_oprtr) const;
             int GetLink(unsigned int vertex) const;
             std::vector<Spin> GetBondSpins(unsigned int num_bond) const;
             void PrintOperators() const;
             void PrintSpins() const;
             void PrintLinks() const;
-            unsigned int GetSpinNumber() const;
             int SwitchAndReverse (int idx_leg) const;
             int ContinueStraight (int idx_leg) const;
             int SwitchAndContinue(int idx_leg) const;

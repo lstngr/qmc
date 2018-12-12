@@ -69,13 +69,35 @@ unsigned int Lattice1D::GetOperatorType(SSEData& ssedata, unsigned int leg) cons
     return 1;
 }
 
+int Lattice1D::GetOperatorType(std::vector<Spin> spn_state) const{
+    if(spn_state.size()==2) // Append to itself if only two spins (ie diag op)
+        spn_state.insert(std::end(spn_state), std::begin(spn_state), std::end(spn_state));
+    if(spn_state[0]==spn_state[1]){ return -1; }
+    else if(spn_state[0]==spn_state[2]){ return 0; }
+    return 1;
+}
+
 double Lattice1D::GetOperatorWeight(SSEData& ssedata, unsigned int leg) const{
-    return 1.0;
+    if(ssedata.GetOperatorType(leg/4)!=-1)
+        return .5;
+    return .0;
+}
+
+double Lattice1D::GetOperatorWeight(int oprtr_type) const{
+    if(oprtr_type!=-1)
+        return 0.5;
+    return .0;
 }
 
 bool Lattice1D::IsNegativeOperator(SSEData& ssedata, unsigned int leg) const{
     return true;
 }
 
-void SpecialUpdates(SSEData& ssedata) const{}
+void Lattice1D::SpecialUpdates(SSEData& ssedata) const{}
+
+bool Lattice1D::IsDiagonal(int oprtr_type) const{
+    if(oprtr_type==0)
+        return true;
+    return false;
+}
 

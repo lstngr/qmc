@@ -8,10 +8,18 @@ namespace qmc{
     class SSEData;
 
     struct Spin{
-        Spin(unsigned int tsn, int tsz):two_norm(tsn),two_sz(tsz){}
-        unsigned int two_norm;
+        Spin(int tsn, int tsz):two_norm(tsn),two_sz(tsz){}
+        void Raise(int amount=1){two_sz+=2*amount;}
+        void Lower(int amount=1){Raise(-amount);}
+        void Promote(int amount=1){two_norm+=2*amount;}
+        void Demote (int amount=1){Promote(-amount);}
+        int two_norm;
         int two_sz;
     };
+    
+    bool operator==(const Spin& a, const Spin& b){
+        return a.two_sz==b.two_sz && a.two_norm==b.two_norm;
+    }
 
     //! Base class managing Lattice structures.
     /*!
@@ -58,12 +66,14 @@ namespace qmc{
              * \return Number of bonds between spins.
              */
             virtual unsigned int GetBondNumber() const = 0;
+            virtual unsigned int HowManyOperators() const = 0;
+            virtual unsigned int MaxTwoS() const = 0;
 
             virtual bool IsLoopStart(SSEData& ssedata, unsigned int leg) const; // Def always true
             virtual int  GetLoopType(SSEData& ssedata, unsigned int leg) const = 0;
             virtual std::vector<double> GetPathProbs(SSEData& ssedata, unsigned int leg) const = 0;
-            virtual unsigned int GetOperatorType(SSEData& ssedata, unsigned int leg) const = 0;
-            virtual unsigned int GetOperatorType(std::vector<Spin> spn_state) const = 0;
+            virtual int GetOperatorType(SSEData& ssedata, unsigned int leg) const = 0;
+            virtual int GetOperatorType(std::vector<Spin> spn_state) const = 0;
             virtual double GetOperatorWeight(SSEData& ssedata, unsigned int leg) const = 0;
             virtual double GetOperatorWeight(int oprtr_type) const = 0;
             virtual bool IsNegativeOperator(SSEData& ssedata, unsigned int leg) const = 0;
@@ -88,13 +98,18 @@ namespace qmc{
             std::vector<unsigned int> GetSpinsIndex(unsigned int num_bond) const override;
             unsigned int GetSpinNumber() const override;
             unsigned int GetBondNumber() const override;
+            unsigned int HowManyOperators() const override{return 2;}
+            unsigned int MaxTwoS() const override{return 1;};
             bool IsLoopStart(SSEData& ssedata, unsigned int leg) const override; // Def always true
             int  GetLoopType(SSEData& ssedata, unsigned int leg) const override;
             std::vector<double> GetPathProbs(SSEData& ssedata, unsigned int leg) const override;
-            unsigned int GetOperatorType(SSEData& ssedata, unsigned int leg) const override;
+            int GetOperatorType(SSEData& ssedata, unsigned int leg) const override;
+            int GetOperatorType(std::vector<Spin> spn_state) const override;
             double GetOperatorWeight(SSEData& ssedata, unsigned int leg) const override;
+            double GetOperatorWeight(int oprtr_type) const override = 0;
             bool IsNegativeOperator(SSEData& ssedata, unsigned int leg) const override;
             void SpecialUpdates(SSEData& ssedata) const override;
+            bool IsDiagonal(int oprtr_type) const override;
         protected:
         private:
             unsigned int length; //!< Number of sites (and bonds) of the lattice.

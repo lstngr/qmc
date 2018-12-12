@@ -36,7 +36,6 @@ namespace qmc{
             void OperatorLoop(bool all_links_empty=false);
             bool AuthInsert(double weight=0.5); // Deprecated...?
             bool AuthRemove(double weight=0.5); // Same?
-            std::vector<unsigned int> LegToSpins(unsigned int idx_leg) const; // Migrate to SSEData
             void UpdateObservables() const;
 
             Lattice* const lattice; //!< Lattice structure of the system. Encloses the information needed for bond index to spin indexes.
@@ -49,11 +48,6 @@ namespace qmc{
             unsigned int measurement_frequency_; /*!< Quantifies the number of
                 sweep taken between measures. When a measure is made, averages
                 are taken over this range of sweeps.*/
-            std::string LoopMethod; /*!< Stores the OperatorLoop method to use.
-                                      In its current state, the program supports:
-                                      - "swenwang": Swendsen-Wang Algorithm
-                                      - "wolff": Wolff Algorithm (default)*/
-                                    // DEPRECATED
             std::mt19937 rdm_engine; //!< Random number generator engine
             std::uniform_int_distribution<unsigned int> random_bond; //!< Calls rdm_engine to generate random bonds
             std::uniform_real_distribution<double> random_prob; //!< Generates a random probability

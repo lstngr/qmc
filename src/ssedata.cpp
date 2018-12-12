@@ -13,20 +13,21 @@ using namespace qmc;
  * \param rdm_engine Pointer to random number generator, shared with qmc::MCStep
  */
 SSEData::SSEData(unsigned int time_slots, Lattice* const lattice, std::mt19937* const rdm_engine)
-    : num_time_slots(time_slots), lattice(lattice)
+    : num_time_slots(time_slots), num_oprtr_type_(lattice->HowManyOperators()), lattice(lattice)
 {
     // Prepare random spin generation
-    std::uniform_int_distribution<unsigned int> random_spin(0,1);
+    unsigned int max_two_s(lattice->MaxTwoS());
+    std::uniform_int_distribution<unsigned int> random_spin(0,max_two_s);
 
-    spins = std::vector<Spin>(lattice->GetSpinNumber(),Spin(0,0));
+    spins = std::vector<Spin>(lattice->GetSpinNumber(),Spin(-1,0));
     oprtr = std::vector<int>(num_time_slots,-1);
     link_vertex = std::vector<int>(4*num_time_slots,-1);
-    bond_vertex_= std::vector<std::vector<Spin>>(num_time_slots, std::vector<Spin>(4,Spin(0,0)));
+    bond_vertex_= std::vector<std::vector<Spin>>(num_time_slots, std::vector<Spin>(4,Spin(-1,0)));
 
     for(unsigned int idx_spin=0; idx_spin<lattice->GetSpinNumber(); idx_spin++){
-        // TODO - Call Lattice for restrictions
-        spins[idx_spin].two_norm = 1;
-        spins[idx_spin].two_sz = 2*random_spin(*rdm_engine) - 1;
+        // TODO - Add spins with multiple S?
+        spins[idx_spin].two_norm = max_two_s;
+        spins[idx_spin].two_sz = 2*random_spin(*rdm_engine) - max_two_s;
     }
 }
 
@@ -60,19 +61,23 @@ unsigned int SSEData::GetOperatorNumber(bool inserted) const{
 //! Returns the specified spin value
 //! \param idx_spin Index of the spin
 //! \return Spin value at index idx_spin
-int SSEData::GetSpin(unsigned int idx_spin) const{
+Spin SSEData::GetSpin(unsigned int idx_spin) const{
     return spins[idx_spin];
 }
 
 //! Sets the specified spin to a given value
 //! \param idx_spin Index of the spin
 //! \param val_spin Value of the spin
-void SSEData::SetSpin(unsigned int idx_spin, int val_spin){
-    spins[idx_spin] = val_spin;
+void SSEData::SetSpin(unsigned int idx_spin, Spin spn){
+    spins[idx_spin] = spn;
+}
+
+void SSEData::SetSpin(unsigned int idx_spin, int two_s, int two_sz){
+    SetSpin(idx_spin, Spin(two_s,two_sz));
 }
 
 void SSEData::RaiseSpin(unsigned int idx_spin, int amount){
-    bond_vertex_[idx_spin/4][idx_spin%4].two_sz += 2*amount;
+    bond_vertex_[idx_spin/4][idx_spin%4].Raise(amount);
 }
 
 void SSEData::LowerSpin(unsigned int idx_spin, unsigned int amount){
@@ -91,6 +96,13 @@ int SSEData::GetOperator(unsigned int idx_oprtr) const{
     return oprtr[idx_oprtr];
 }
 
+int SSEData::GetOperatorType(unsigned int idx_oprtr) const{
+    return oprtr[idx_oprtr]%num_oprtr_type_;
+}
+
+int SSEData::GetOperatorBond(unsigned int idx_oprtr) const{
+    return oprtr[idx_oprtr]/num_oprtr_type_;
+}
 //! Set the value of an operator at a given time slot
 /*!
  * Sets the value of an operator at a given time slot index. If called without
@@ -141,8 +153,8 @@ void SSEData::SetLink(unsigned int vertex, int val_vertex) {
  * \return Vector containing the values of the spins linked by the bond with
  * index num_bond.
  */
-std::vector<int> SSEData::GetBondSpins(unsigned int num_bond) const{
-    std::vector<int> spins(2,0);
+std::vector<Spin> SSEData::GetBondSpins(unsigned int num_bond) const{
+    std::vector<Spin> spins(2,Spin(-1,0));
     spins[0] = this->spins[num_bond];
     spins[1] = this->spins[(num_bond+1)%this->spins.size()];
 
@@ -155,6 +167,16 @@ std::vector<int> SSEData::GetBondSpins(unsigned int num_bond) const{
  */
 void SSEData::FlipSpin(unsigned int idx_spin){
     spins[idx_spin] *= -1;
+}
+
+void SSEData::UpdateSpins(unsigned int idx_oprtr){
+    // TODO - Fix DIRTY stuff
+    unsigned int b = GetOperatorBond(idx_oprtr);
+    unsigned int a = GetOperatorType(idx_oprtr);
+    std::vector<Spin> curSpin(GetBondSpins(b));
+    curSpin = lattice->Propagate(curSpin, a);
+    SetSpin(b, curSpin[0]);
+    SetSpin((b+1)%spins.size(), curSpin[1]);
 }
 
 //! Flips the spins in a given bond
@@ -197,12 +219,6 @@ void SSEData::PrintLinks() const{
 
 }
 
-//! Returns current number of spins
-//! \return Number of spins
-unsigned int SSEData::GetSpinNumber() const{
-    return spins.size();
-}
-
 //! Creates a link between input vertices
 /*!
  * Updates link_vertex so that the given indexes refer to each other.
@@ -218,8 +234,24 @@ void SSEData::LinkVertex(unsigned int vertex_0, unsigned int vertex_1){
 //! Resets the link_vertex to -1
 void SSEData::ResetLinkVertex(){
     link_vertex = std::vector<int>(4*num_time_slots,-1);
-    v_first_ = std::vector<int>(GetSpinNumber(),-1);
-    v_last_  = std::vector<int>(GetSpinNumber(),-1);
+    v_first_ = std::vector<int>(lattice->GetSpinNumber(),-1);
+    v_last_  = std::vector<int>(lattice->GetSpinNumber(),-1);
+}
+
+int SSEData::GetVFirst(unsigned int idx_spin) const{
+    return v_first_[idx_spin];
+}
+
+void SSEData::SetVFirst(unsigned int idx_spin, unsigned int idx_leg){
+    v_first_[idx_spin] = idx_leg;
+}
+
+int SSEData::GetVLast(unsigned int idx_spin) const{
+    return v_last_[idx_spin];
+}
+
+void SSEData::SetVLast(unsigned int idx_spin, unsigned int idx_leg){
+    v_last_[idx_spin] = idx_leg;
 }
 
 //! Returns the next leg index for a SW&R procedure
