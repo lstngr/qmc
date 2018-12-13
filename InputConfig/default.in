@@ -1,6 +1,6 @@
 beta=60
 expansion_factor=0.3
-measurement_frequency=20
+measurement_frequency=200
 LoopMethod=wolff
-num_sweep=10000000.0000
+num_sweep=10000.0000
 output_dest=data.out

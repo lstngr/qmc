@@ -57,10 +57,14 @@ namespace qmc{
             void SetVLast(unsigned int idx_spin, unsigned int idx_leg);
             void UpdateSpinState();
             void Equilibrate(double expansion_factor);
+            bool CheckPositiveWeight();
+            double GetNegativeWeightRatio();
 
         private:
             int num_time_slots; //!< Number of time slots to place operators
             int num_oprtr_type_;
+            int pos_cfg;
+            int neg_cfg;
             std::vector<Spin> spins; //!< Spin state of the system (plus or minus ones in the Heisenberg 1/2 model)
             std::vector<int> oprtr; //!< Operator string. -1 indicates the identity operator
             std::vector<int> link_vertex; //!< Linked vertex storage of the configuration.

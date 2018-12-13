@@ -120,6 +120,10 @@ namespace qmc{
         return false;
     }
 
+    bool Lattice1D::IsNegativeOperator(std::vector<Spin>) const{
+        return false;
+    }
+
     void Lattice1D::SpecialUpdates(SSEData& /*ssedata*/) const{}
 
     bool Lattice1D::IsDiagonal(int oprtr_type) const{

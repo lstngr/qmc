@@ -97,8 +97,9 @@ const std::vector<Observable*>& MCStep::GetObservables() const {
  *
  * \param num_sweep How many sweep should be carried out
  */
-void MCStep::Sweep(unsigned int num_sweep){
+void MCStep::Sweep(unsigned int num_sweep, int max_sweep){
     output_manager_->PrintInitLine();
+    int effective_idx_sweep(0);
     for(unsigned int idx_sweep(0); idx_sweep<num_sweep; idx_sweep++) {
         LOG(2,"Sweep " << idx_sweep << std::endl);
         LOG(2,"=========================" << std::endl);
@@ -108,11 +109,22 @@ void MCStep::Sweep(unsigned int num_sweep){
         sse_data->Equilibrate(expansion_factor);
         random_leg = std::uniform_int_distribution<unsigned int>(0,4*sse_data->GetOperatorNumber(false)-1);
         sse_data->UpdateSpinState();
-        UpdateObservables();
-        if(idx_sweep%measurement_frequency_==1 && idx_sweep) {
-            output_manager_->PrintObservables(idx_sweep);
-            for(auto it=observables_.begin(); it!=observables_.end(); ++it)
-                (*it)->ClearObservable();
+        effective_idx_sweep++;
+        if(sse_data->CheckPositiveWeight()){
+            UpdateObservables();
+            if(idx_sweep%measurement_frequency_==1 && idx_sweep) {
+                output_manager_->PrintObservables(idx_sweep);
+                for(auto it=observables_.begin(); it!=observables_.end(); ++it)
+                    (*it)->ClearObservable();
+            }
+        }else{
+            // Negative configuration encountered, the sweep is discarded.
+            idx_sweep--;
+        }
+
+        if(effective_idx_sweep==max_sweep){
+            idx_sweep = num_sweep;
+            std::cout << "Warning: Max number of sweeps exceeded!" << std::endl;
         }
     }
 }

@@ -44,3 +44,18 @@ double ObservableHamilton::Measure() const {
 void ObservableHamilton::ClearObservable() {
     num_oprtr_.clear();
 }
+
+ObservableSign::ObservableSign()
+    :Observable("Neg. Sign"), ratios(std::vector<double>()){}
+
+void ObservableSign::UpdateObservable(SSEData* const sim_data){
+    ratios.push_back(sim_data->GetNegativeWeightRatio());
+}
+
+double ObservableSign::Measure() const{
+    return std::accumulate(ratios.begin(), ratios.end(), .0) / ratios.size();
+}
+
+void ObservableSign::ClearObservable() {
+    ratios.clear();
+}

@@ -10,8 +10,11 @@ int main(int argc, char** argv){
     qmc::IManager read_input(config_file);
     qmc::MCStep engine(&lattice, read_input.GetConfig());
     qmc::ObservableHamilton energy(engine.GetBeta());
+    qmc::ObservableSign config_sign;
     engine.AddObservable(&energy);
-    engine.Sweep(read_input.GetConfig().num_sweep);
+    engine.AddObservable(&config_sign);
+    engine.Sweep(read_input.GetConfig().num_sweep,
+            read_input.GetConfig().max_sweep);
 
     std::cout << "Energy is: " << energy.Measure() << std::endl;
     LOG(3,"Ok" << std::endl);

@@ -52,6 +52,18 @@ namespace qmc{
             double beta_; /*!< Inverse temperature of the system. It is set at class instantiation.*/
     };
 
+    class ObservableSign : public Observable{
+        public:
+            ObservableSign();
+            virtual ~ObservableSign(){};
+            void UpdateObservable(SSEData* const sim_data);
+            double Measure() const;
+            void ClearObservable();
+        protected:
+        private:
+            std::vector<double> ratios;
+    };
+
 };
 
 #endif //QMC_OBSERVABLE_HPP_

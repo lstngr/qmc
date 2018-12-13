@@ -24,7 +24,7 @@ namespace qmc{
             MCStep(Lattice* const lattice);
             MCStep(Lattice* const lattice, const Configuration& sim_conf_);
             virtual ~MCStep();
-            void Sweep(unsigned int num_sweep=1);
+            void Sweep(unsigned int num_sweep=1, int max_sweep=-1);
             void SetBeta(double beta=10);
             void AddObservable(Observable* obsrv);
             double GetBeta() const;

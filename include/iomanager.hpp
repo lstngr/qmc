@@ -25,6 +25,7 @@ namespace qmc{
         unsigned int measurement_frequency; //!< Number of measures per observable bin
         std::string LoopMethod; //!< Either Wolff or Swendsen-Wang algorithms
         unsigned int num_sweep; //!< Number of sweeps to perform
+        int max_sweep; //<! Maximum allowed number of sweeps (prevents runaway due to negative configurations)
         std::string output_dest; //!< Either a std stream or a filename
         std::map<std::string,int> param2num; //!<Maps parameter to an index
     };

@@ -14,7 +14,7 @@ using namespace qmc;
  * \param rdm_engine Pointer to random number generator, shared with qmc::MCStep
  */
 SSEData::SSEData(unsigned int time_slots, Lattice* const lattice, std::mt19937* const rdm_engine)
-    : num_time_slots(time_slots), num_oprtr_type_(lattice->HowManyOperators()), lattice(lattice)
+    : num_time_slots(time_slots), num_oprtr_type_(lattice->HowManyOperators()), pos_cfg(0), neg_cfg(0), lattice(lattice)
 {
     // Prepare random spin generation
     unsigned int max_two_s(lattice->MaxTwoS());
@@ -307,4 +307,22 @@ void SSEData::Equilibrate(double expansion_factor) {
         oprtr.insert(oprtr.end(),new_slots.begin(),new_slots.end());
         bond_vertex_.insert(bond_vertex_.end(),new_vrtx.begin(),new_vrtx.end());
     }
+}
+
+bool SSEData::CheckPositiveWeight(){
+    int neg_count(0);
+    for(unsigned int idx_oprtr(0); idx_oprtr<oprtr.size(); idx_oprtr++)
+        neg_count += lattice->IsNegativeOperator(bond_vertex_[idx_oprtr]);
+    if(neg_count%2){
+        neg_cfg+=1;
+        return false;
+    }
+    pos_cfg+=1;
+    return true;
+}
+
+double SSEData::GetNegativeWeightRatio() {
+    double ratio(1.*neg_cfg/(pos_cfg+neg_cfg));
+    pos_cfg=0; neg_cfg=0;
+    return ratio;
 }

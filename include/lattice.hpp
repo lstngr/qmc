@@ -79,6 +79,7 @@ namespace qmc{
             virtual double FindOperatorWeight(SSEData& ssedata, unsigned int leg) const = 0;
             virtual double FindOperatorWeight(int oprtr_type) const = 0;
             virtual bool IsNegativeOperator(SSEData& ssedata, unsigned int leg) const = 0;
+            virtual bool IsNegativeOperator(std::vector<Spin> spn_state) const = 0;
             virtual void SpecialUpdates(SSEData& ssedata) const = 0;
             virtual bool IsDiagonal(SSEData& ssedata, unsigned int leg) const = 0;
             virtual bool IsDiagonal(int oprtr_type) const = 0;
@@ -110,6 +111,7 @@ namespace qmc{
             int FindOperatorType(std::vector<Spin> spn_state) const override;
             double FindOperatorWeight(SSEData& ssedata, unsigned int leg) const override;
             double FindOperatorWeight(int oprtr_type) const override;
+            bool IsNegativeOperator(std::vector<Spin> spn_state) const override;
             bool IsNegativeOperator(SSEData& ssedata, unsigned int leg) const override;
             void SpecialUpdates(SSEData& ssedata) const override;
             bool IsDiagonal(SSEData& ssedata, unsigned int leg) const override;
