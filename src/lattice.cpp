@@ -3,6 +3,35 @@
 
 namespace qmc{
 
+    bool Spin::IsValid() const{
+        if(two_norm<0)
+            return false;
+        else if(std::abs(two_sz) > two_norm)
+            return false;
+        else if(std::abs(two_sz%2) != two_norm%2)
+            return false;
+        return true;
+    }
+    void Spin::Validate(){
+        if(not IsValid()){two_sz=0; two_norm=-1;}
+    }
+    void Spin::Raise(int amount){
+        two_sz+=2*amount;
+        Validate();
+    }
+    void Spin::Lower(int amount){
+        Raise(-amount);
+        Validate();
+    }
+    void Spin::Promote(int amount){
+        two_norm+=2*amount;
+        Validate();
+    }
+    void Spin::Demote (int amount){
+        Promote(-amount);
+        Validate();
+    }
+
     bool operator==(const Spin& a, const Spin& b){
         return a.two_sz==b.two_sz && a.two_norm==b.two_norm;
     }
@@ -19,11 +48,6 @@ namespace qmc{
     //! Lattice class constructor
     Lattice::Lattice(){}
 
-    int Lattice::GetLoopType(SSEData& ssedata, unsigned int leg) const{
-        return -ssedata.GetLegSpin(leg).two_sz;
-    }
-
-
     ////////////////////////////
     // LATTICE1D ///////////////
     ////////////////////////////
@@ -34,7 +58,7 @@ namespace qmc{
      * (hence, the number of spins is also the number of bonds).
      * \param length Length of the lattice, ie. the site number.
      */
-    Lattice1D::Lattice1D(unsigned int length): length(length){}
+    Lattice1D::Lattice1D(unsigned int length): length(length),rdm_engine(std::mt19937(5)),random_prob(std::uniform_real_distribution<double>(0.0,1.0)){}
 
     //! Returns spin indexes of a specific bond
     /*!
@@ -118,6 +142,47 @@ namespace qmc{
             spn_state[0].Lower(); spn_state[1].Raise();
         }
         return spn_state;
+    }
+
+    unsigned int Lattice1D::ChooseMove(SSEData& ssedata, unsigned int leg, Spin& loop_type){
+        std::vector<double> path_probs(FindPathProbs(ssedata,leg));
+        std::vector<double> comb_probs(path_probs.size());
+        std::partial_sum(path_probs.begin(), path_probs.end(), comb_probs.begin());
+        ssedata.SetSpinVrtx(leg,loop_type);
+
+        // Choose Move and update
+        double path_selector = random_prob(rdm_engine);
+        if(path_selector < comb_probs[0]){
+            // Bounce
+            // Revert spin change and looptype
+        }
+        else if(path_selector < comb_probs[1]){
+            // CS
+            leg = ssedata.ContinueStraight(leg);
+        }
+        else if(path_selector < comb_probs[2]){
+            // SWC
+            leg = ssedata.SwitchAndContinue(leg);
+        }
+        else{
+            // SWR
+            leg = ssedata.SwitchAndReverse(leg);
+            if(loop_type.two_sz>0)
+                loop_type.Lower();
+            else
+                loop_type.Raise();
+        }
+        ssedata.SetSpinVrtx(leg,loop_type);
+        return leg;
+    }
+
+    Spin Lattice1D::GetLoopType(SSEData& ssedata, unsigned int leg) const{
+        Spin spn(ssedata.GetLegSpin(leg));
+        if(spn.two_sz>0)
+            spn.Lower();
+        else
+            spn.Raise();
+        return spn;
     }
 
 } // namespace qmc

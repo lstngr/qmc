@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <ostream>
+#include <random>
 
 namespace qmc{
 
@@ -10,10 +11,12 @@ namespace qmc{
 
     struct Spin{
         Spin(int tsn, int tsz):two_norm(tsn),two_sz(tsz){}
-        void Raise(int amount=1){two_sz+=2*amount;}
-        void Lower(int amount=1){Raise(-amount);}
-        void Promote(int amount=1){two_norm+=2*amount;}
-        void Demote (int amount=1){Promote(-amount);}
+        void Raise(int amount=1);
+        void Lower(int amount=1);
+        void Promote(int amount=1);
+        void Demote (int amount=1);
+        void Validate();
+        bool IsValid() const;
         int two_norm;
         int two_sz;
     };
@@ -68,7 +71,8 @@ namespace qmc{
             virtual unsigned int HowManyOperators() const = 0;
             virtual unsigned int MaxTwoS() const = 0;
             virtual bool IsLoopStart(SSEData& ssedata, unsigned int leg) const = 0;
-            virtual int  GetLoopType(SSEData& ssedata, unsigned int leg) const;
+            virtual Spin GetLoopType(SSEData& ssedata, unsigned int leg) const = 0;
+            virtual unsigned int ChooseMove(SSEData& ssedata, unsigned int leg, Spin& loop_type) = 0;
             virtual std::vector<double> FindPathProbs(SSEData& ssedata, unsigned int leg) const = 0;
             virtual int FindOperatorType(SSEData& ssedata, unsigned int leg) const = 0;
             virtual int FindOperatorType(std::vector<Spin> spn_state) const = 0;
@@ -99,6 +103,8 @@ namespace qmc{
             unsigned int HowManyOperators() const override{return 2;}
             unsigned int MaxTwoS() const override{return 1;}
             bool IsLoopStart(SSEData& ssedata, unsigned int leg) const override;
+            unsigned int ChooseMove(SSEData& ssedata, unsigned int leg, Spin& loop_type) override;
+            Spin GetLoopType(SSEData& ssedata, unsigned int leg) const override;
             std::vector<double> FindPathProbs(SSEData& ssedata, unsigned int leg) const override;
             int FindOperatorType(SSEData& ssedata, unsigned int leg) const override;
             int FindOperatorType(std::vector<Spin> spn_state) const override;
@@ -112,6 +118,9 @@ namespace qmc{
         protected:
         private:
             unsigned int length; //!< Number of sites (and bonds) of the lattice.
+            std::mt19937 rdm_engine; //!< Random number generator engine
+            std::uniform_real_distribution<double> random_prob; //!< Calls rdm_engine to generate random bonds
+
     };
 
 }

@@ -237,42 +237,12 @@ void MCStep::OperatorLoop(bool all_links_empty){
             int idx_loop_start(idx_loop);
 
             if (lattice->IsLoopStart(*sse_data,idx_loop)) {
-                short loop_type(lattice->GetLoopType(*sse_data,idx_loop));
+                Spin loop_type(lattice->GetLoopType(*sse_data,idx_loop));
                 do{
                     // Update bond vertex
                     idx_loop = sse_data->GetLink(idx_loop);
-                    if (loop_type>0)
-                        sse_data->RaiseSpin(idx_loop);
-                    else
-                        sse_data->LowerSpin(idx_loop);
-
                     // Get Moves
-                    std::vector<double> path_probs(lattice->FindPathProbs(*sse_data,idx_loop));
-                    std::vector<double> comb_probs(path_probs.size());
-                    std::partial_sum(path_probs.begin(), path_probs.end(), comb_probs.begin());
-                    // Choose Move and update
-                    double path_selector = random_prob(rdm_engine);
-                    if(path_selector < comb_probs[0]){
-                        // Bounce
-                        // Revert spin change and looptype
-                    }
-                    else if(path_selector < comb_probs[1]){
-                        // CS
-                        idx_loop = sse_data->ContinueStraight(idx_loop);
-                    }
-                    else if(path_selector < comb_probs[2]){
-                        // SWC
-                        idx_loop = sse_data->SwitchAndContinue(idx_loop);
-                    }
-                    else{
-                        // SWR
-                        idx_loop = sse_data->SwitchAndReverse(idx_loop);
-                        loop_type *= -1;
-                    }
-                    if (loop_type>0)
-                        sse_data->RaiseSpin(idx_loop);
-                    else
-                        sse_data->LowerSpin(idx_loop);
+                    idx_loop = lattice->ChooseMove(*sse_data, idx_loop, loop_type);
                     unsigned int thebond(sse_data->GetOperatorBond(idx_loop/4));
                     sse_data->SetOperator(idx_loop/4,
                             lattice->FindOperatorType(*sse_data, idx_loop),

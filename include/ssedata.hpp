@@ -26,8 +26,11 @@ namespace qmc{
             Spin GetSpin(unsigned int idx_spin) const;
             void SetSpin(unsigned int idx_spin, int two_s, int two_sz);
             void SetSpin(unsigned int idx_spin, Spin spn);
+            void SetSpinVrtx(unsigned int idx_leg, Spin spn);
             Spin GetLegSpin(unsigned int leg_idx) const;
             std::vector<Spin> GetBondVrtx(unsigned int oprtr_idx) const;
+            void SetBondVrtx(unsigned int leg_idx, Spin spn);
+            // void SetBondVrtx(unsigned int oprtr_idx, std::vector<Spin> spnvrtx) const;
             int GetOperator(unsigned int idx_oprtr) const;
             int GetOperatorType(unsigned int idx_oprtr) const;
             int GetOperatorBond(unsigned int idx_oprtr) const;

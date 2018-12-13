@@ -77,6 +77,10 @@ void SSEData::SetSpin(unsigned int idx_spin, int two_s, int two_sz){
     SetSpin(idx_spin, Spin(two_s,two_sz));
 }
 
+void SSEData::SetSpinVrtx(unsigned int idx_leg, Spin spn){
+    bond_vertex_[idx_leg/4][idx_leg%4] = spn;
+}
+
 Spin SSEData::GetLegSpin(unsigned int leg_idx) const{
     return bond_vertex_[leg_idx/4][leg_idx%4];
 }

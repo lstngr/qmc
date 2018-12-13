@@ -2,7 +2,7 @@
 #include "mcstep.hpp"
 
 int main(int argc, char** argv){
-    std::string config_file("default.in");
+    std::string config_file("InputConfig/default.in");
     if(argc==2)
         config_file=argv[1];
     // Declare system
