@@ -4,6 +4,18 @@
 
 using namespace qmc;
 
+void Observable::AddSign(short is_neg){
+    sign.push_back(is_neg);
+}
+
+double Observable::MeanSign() const{
+    return std::accumulate(sign.begin(),sign.end(),0.0) / sign.size();
+}
+
+void Observable::ClearObservable(){
+    sign.clear();
+}
+
 /*! Constructs a Hamiltonian operator. It mainly sets the inverse temperature,
 * which is assumed constant during the lifetime of the class.
 * \param beta Inverse temperature
@@ -20,8 +32,9 @@ ObservableHamilton::ObservableHamilton(double beta): Observable("Energy"), beta_
  *  qmc::ObservableHamilton::Measure.
  *  \param sim_data Pointer to the simulation data.
  */
-void ObservableHamilton::UpdateObservable(SSEData* const sim_data) {
-    num_oprtr_.push_back(sim_data->GetOperatorNumber());
+void ObservableHamilton::UpdateObservable(SSEData* const sim_data, short sign) {
+    AddSign(sign);
+    num_oprtr_.push_back(sign*sim_data->GetOperatorNumber());
 }
 
 /*! \brief Returns the energy of the system.
@@ -32,7 +45,7 @@ void ObservableHamilton::UpdateObservable(SSEData* const sim_data) {
  */
 double ObservableHamilton::Measure() const {
     double energy = - std::accumulate(num_oprtr_.begin(),
-            num_oprtr_.end(), 0.0) / num_oprtr_.size() / beta_;
+            num_oprtr_.end(), 0.0) / num_oprtr_.size() / Observable::MeanSign() / beta_;
     return energy;
 }
 
@@ -42,20 +55,23 @@ double ObservableHamilton::Measure() const {
  *  made.
  */
 void ObservableHamilton::ClearObservable() {
+    Observable::ClearObservable();
     num_oprtr_.clear();
 }
 
 ObservableSign::ObservableSign()
     :Observable("Neg. Sign"), ratios(std::vector<double>()){}
 
-void ObservableSign::UpdateObservable(SSEData* const sim_data){
+void ObservableSign::UpdateObservable(SSEData* const sim_data, short sign){
+    AddSign(sign);
     ratios.push_back(sim_data->GetNegativeWeightRatio());
 }
 
 double ObservableSign::Measure() const{
-    return std::accumulate(ratios.begin(), ratios.end(), .0) / ratios.size();
+    return std::accumulate(ratios.begin(), ratios.end(), .0) / ratios.size() / MeanSign();
 }
 
 void ObservableSign::ClearObservable() {
+    Observable::ClearObservable();
     ratios.clear();
 }

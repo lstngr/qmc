@@ -14,18 +14,21 @@ namespace qmc{
             //! Base class constructor needs to set its name (as private
             //! attribute)
             //! \param name Name of the observable to print it later.
-            Observable(std::string name=""):obsrv_name_(name){};
+            Observable(std::string name=""):sign(std::vector<short>({})),obsrv_name_(name){};
             virtual ~Observable(){};
-            virtual void UpdateObservable(SSEData* const sim_data)=0; /*!< Updates the attributes of the observable after each sweep.
+            virtual void UpdateObservable(SSEData* const sim_data, short sign)=0; /*!< Updates the attributes of the observable after each sweep.
             \param sim_data Pointer to a simulation container. Allows access to simulation data.*/
             virtual double Measure() const = 0; /*!< Returns the average value of the observable.
             \return The average value of the observable*/
 
-            virtual void ClearObservable()=0; /*!< Clears any stored variables to free space up for a new measurement.*/
+            virtual void ClearObservable(); /*!< Clears any stored variables to free space up for a new measurement.*/
             //! Returns the name of an observable
             //! \return Name of the observable
             std::string GetName() const {return obsrv_name_;}
+            void AddSign(short is_neg=false);
+            double MeanSign() const;
         private:
+            std::vector<short> sign;
             std::string obsrv_name_; //!< Name of the observable. Used when printing
     };
 
@@ -44,7 +47,7 @@ namespace qmc{
         public:
             ObservableHamilton(double beta);
             virtual ~ObservableHamilton(){};
-            virtual void UpdateObservable(SSEData* const sim_data);
+            virtual void UpdateObservable(SSEData* const sim_data,short sign);
             virtual double Measure() const;
             virtual void ClearObservable();
         protected:
@@ -56,7 +59,7 @@ namespace qmc{
         public:
             ObservableSign();
             virtual ~ObservableSign(){};
-            void UpdateObservable(SSEData* const sim_data);
+            void UpdateObservable(SSEData* const sim_data, short sign);
             double Measure() const;
             void ClearObservable();
         protected:

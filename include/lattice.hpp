@@ -77,17 +77,20 @@ namespace qmc{
             virtual unsigned int ChooseMove(SSEData& ssedata, unsigned int leg, Spin& loop_type) = 0;
             virtual std::vector<double> FindPathProbs(SSEData& ssedata, unsigned int leg, const Spin& loop_type) const = 0;
             virtual int FindOperatorType(SSEData& ssedata, unsigned int leg) const = 0;
-            virtual int FindOperatorType(std::vector<Spin> spn_state) const = 0;
+            virtual int FindBondType(SSEData& ssedata, unsigned int bond) const = 0;
+            virtual std::vector<Spin> PropagateBond(SSEData& ssedata, unsigned int oprtr) const = 0;
             virtual double FindOperatorWeight(SSEData& ssedata, unsigned int leg) const = 0;
             virtual double FindOperatorWeight(int oprtr_type) const = 0;
             virtual bool IsNegativeOperator(SSEData& ssedata, unsigned int leg) const = 0;
-            virtual bool IsNegativeOperator(std::vector<Spin> spn_state) const = 0;
             virtual void SpecialUpdates(SSEData& ssedata) const = 0;
             virtual bool IsDiagonal(SSEData& ssedata, unsigned int leg) const = 0;
             virtual bool IsDiagonal(int oprtr_type) const = 0;
-            virtual std::vector<Spin> Propagate(std::vector<Spin> spn_state, unsigned int oprtr_type) const = 0;
             virtual Spin RandomSpin() = 0;
         protected:
+            virtual bool IsNegativeOperator(std::vector<Spin> spn_state) const = 0;
+            virtual int FindOperatorType(std::vector<Spin> spn_state) const = 0;
+            virtual std::vector<Spin> Propagate(std::vector<Spin> spn_state, unsigned int oprtr_type) const = 0;
+            static std::mt19937 rdm_engine; //!< Random number generator engine
             static std::uniform_real_distribution<double>random_prob;
         private:
     };
@@ -109,20 +112,21 @@ namespace qmc{
             Spin GetLoopType(SSEData& ssedata, unsigned int leg) override;
             std::vector<double> FindPathProbs(SSEData& ssedata, unsigned int leg, const Spin& loop_type) const override;
             int FindOperatorType(SSEData& ssedata, unsigned int leg) const override;
-            int FindOperatorType(std::vector<Spin> spn_state) const override;
+            int FindBondType(SSEData& ssedata, unsigned int bond) const override;
+            std::vector<Spin> PropagateBond(SSEData& ssedata, unsigned int oprtr) const override;
             double FindOperatorWeight(SSEData& ssedata, unsigned int leg) const override;
             double FindOperatorWeight(int oprtr_type) const override;
-            bool IsNegativeOperator(std::vector<Spin> spn_state) const override;
             bool IsNegativeOperator(SSEData& ssedata, unsigned int leg) const override;
             void SpecialUpdates(SSEData& ssedata) const override;
             bool IsDiagonal(SSEData& ssedata, unsigned int leg) const override;
             bool IsDiagonal(int oprtr_type) const override;
-            std::vector<Spin> Propagate(std::vector<Spin> spn_state, unsigned int oprtr_type) const override;
             Spin RandomSpin() override;
         protected:
+            bool IsNegativeOperator(std::vector<Spin> spn_state) const override;
+            int FindOperatorType(std::vector<Spin> spn_state) const override;
+            std::vector<Spin> Propagate(std::vector<Spin> spn_state, unsigned int oprtr_type) const override;
         private:
             unsigned int length; //!< Number of sites (and bonds) of the lattice.
-            std::mt19937 rdm_engine; //!< Random number generator engine
             std::uniform_int_distribution<int> rdm_spin_sz;
 
     };
@@ -144,24 +148,24 @@ namespace qmc{
             Spin GetLoopType(SSEData& ssedata, unsigned int leg) override;
             std::vector<double> FindPathProbs(SSEData& ssedata, unsigned int leg, const Spin& loop_type) const override;
             int FindOperatorType(SSEData& ssedata, unsigned int leg) const override;
-            int FindOperatorType(std::vector<Spin> spn_state) const override;
+            int FindBondType(SSEData& ssedata, unsigned int bond) const override;
+            std::vector<Spin> PropagateBond(SSEData& ssedata, unsigned int oprtr) const override;
             double FindOperatorWeight(SSEData& ssedata, unsigned int leg) const override;
             double FindOperatorWeight(int oprtr_type) const override;
-            bool IsNegativeOperator(std::vector<Spin> spn_state) const override;
             bool IsNegativeOperator(SSEData& ssedata, unsigned int leg) const override;
             void SpecialUpdates(SSEData& ssedata) const override;
             bool IsDiagonal(SSEData& ssedata, unsigned int leg) const override;
             bool IsDiagonal(int oprtr_type) const override;
-            std::vector<Spin> Propagate(std::vector<Spin> spn_state, unsigned int oprtr_type) const override;
             Spin RandomSpin() override;
         protected:
+            bool IsNegativeOperator(std::vector<Spin> spn_state) const override;
+            int FindOperatorType(std::vector<Spin> spn_state) const override;
+            std::vector<Spin> Propagate(std::vector<Spin> spn_state, unsigned int oprtr_type) const override;
         private:
             unsigned int length; //!< Number of sites (and bonds) of the lattice.
             double epsilon;
-            std::mt19937 rdm_engine; //!< Random number generator engine
             std::uniform_int_distribution<unsigned int> rdm_spin_norm;
             std::uniform_int_distribution<int> rdm_spin_sz;
-
     };
 }
 

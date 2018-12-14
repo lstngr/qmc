@@ -184,12 +184,9 @@ std::vector<Spin> SSEData::GetBondSpins(unsigned int num_bond) const{
 
 void SSEData::UpdateSpins(unsigned int idx_oprtr){
     // TODO - Fix DIRTY stuff
-    unsigned int b = GetOperatorBond(idx_oprtr);
-    unsigned int a = GetOperatorType(idx_oprtr);
-    std::vector<Spin> curSpin(GetBondSpins(b));
-    curSpin = lattice->Propagate(curSpin, a);
-    SetSpin(b, curSpin[0]);
-    SetSpin((b+1)%spins.size(), curSpin[1]);
+    std::vector<Spin> curSpin(lattice->PropagateBond(*this,idx_oprtr));
+    SetSpin(GetOperatorBond(idx_oprtr), curSpin[0]);
+    SetSpin((GetOperatorBond(idx_oprtr)+1)%spins.size(), curSpin[1]);
 }
 
 //! Prints operators for debbuging purposes
@@ -308,7 +305,7 @@ void SSEData::Equilibrate(double expansion_factor) {
 bool SSEData::CheckPositiveWeight(){
     int neg_count(0);
     for(unsigned int idx_oprtr(0); idx_oprtr<oprtr.size(); idx_oprtr++)
-        neg_count += lattice->IsNegativeOperator(bond_vertex_[idx_oprtr]);
+        neg_count += lattice->IsNegativeOperator(*this,4*idx_oprtr);
     if(neg_count%2){
         neg_cfg+=1;
         return false;

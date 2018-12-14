@@ -24,7 +24,7 @@ namespace qmc{
             MCStep(Lattice* const lattice);
             MCStep(Lattice* const lattice, const Configuration& sim_conf_);
             virtual ~MCStep();
-            void Sweep(unsigned int num_sweep=1, int max_sweep=-1);
+            void Sweep(unsigned int num_sweep=1);
             void SetBeta(double beta=10);
             void AddObservable(Observable* obsrv);
             double GetBeta() const;
@@ -36,7 +36,7 @@ namespace qmc{
             void OperatorLoop(bool all_links_empty=false);
             bool AuthInsert(double weight=0.5); // Deprecated...?
             bool AuthRemove(double weight=0.5); // Same?
-            void UpdateObservables() const;
+            void UpdateObservables(short sign) const;
 
             Lattice* const lattice; //!< Lattice structure of the system. Encloses the information needed for bond index to spin indexes.
             SSEData* sse_data; //!< Spin and operator state of the system
