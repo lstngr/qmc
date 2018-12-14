@@ -11,10 +11,13 @@ namespace qmc{
 
     struct Spin{
         Spin(int tsn, int tsz):two_norm(tsn),two_sz(tsz){}
-        void Raise(int amount=1);
-        void Lower(int amount=1);
-        void Promote(int amount=1);
-        void Demote (int amount=1);
+        Spin& Raise(int amount=1);
+        Spin& Lower(int amount=1);
+        Spin& Promote(int amount=1);
+        Spin& Demote (int amount=1);
+        Spin& RaiseD ();
+        Spin& LowerD ();
+        Spin& Dz();
         void Validate();
         bool IsValid() const;
         int two_norm;
@@ -69,11 +72,10 @@ namespace qmc{
              */
             virtual unsigned int GetBondNumber() const = 0;
             virtual unsigned int HowManyOperators() const = 0;
-            virtual unsigned int MaxTwoS() const = 0;
             virtual bool IsLoopStart(SSEData& ssedata, unsigned int leg) const = 0;
             virtual Spin GetLoopType(SSEData& ssedata, unsigned int leg) = 0;
             virtual unsigned int ChooseMove(SSEData& ssedata, unsigned int leg, Spin& loop_type) = 0;
-            virtual std::vector<double> FindPathProbs(SSEData& ssedata, unsigned int leg) const = 0;
+            virtual std::vector<double> FindPathProbs(SSEData& ssedata, unsigned int leg, const Spin& loop_type) const = 0;
             virtual int FindOperatorType(SSEData& ssedata, unsigned int leg) const = 0;
             virtual int FindOperatorType(std::vector<Spin> spn_state) const = 0;
             virtual double FindOperatorWeight(SSEData& ssedata, unsigned int leg) const = 0;
@@ -86,10 +88,10 @@ namespace qmc{
             virtual std::vector<Spin> Propagate(std::vector<Spin> spn_state, unsigned int oprtr_type) const = 0;
             virtual Spin RandomSpin() = 0;
         protected:
+            static std::uniform_real_distribution<double>random_prob;
         private:
-
     };
-
+    
     //! Implementation of a linear one dimensionnal lattice structure.
     /*!
      * Name is pretty self-explanatory
@@ -105,7 +107,7 @@ namespace qmc{
             bool IsLoopStart(SSEData& ssedata, unsigned int leg) const override;
             unsigned int ChooseMove(SSEData& ssedata, unsigned int leg, Spin& loop_type) override;
             Spin GetLoopType(SSEData& ssedata, unsigned int leg) override;
-            std::vector<double> FindPathProbs(SSEData& ssedata, unsigned int leg) const override;
+            std::vector<double> FindPathProbs(SSEData& ssedata, unsigned int leg, const Spin& loop_type) const override;
             int FindOperatorType(SSEData& ssedata, unsigned int leg) const override;
             int FindOperatorType(std::vector<Spin> spn_state) const override;
             double FindOperatorWeight(SSEData& ssedata, unsigned int leg) const override;
@@ -121,7 +123,6 @@ namespace qmc{
         private:
             unsigned int length; //!< Number of sites (and bonds) of the lattice.
             std::mt19937 rdm_engine; //!< Random number generator engine
-            std::uniform_real_distribution<double> random_prob; //!< Calls rdm_engine to generate random bonds
             std::uniform_int_distribution<int> rdm_spin_sz;
 
     };
@@ -141,7 +142,7 @@ namespace qmc{
             bool IsLoopStart(SSEData& ssedata, unsigned int leg) const override;
             unsigned int ChooseMove(SSEData& ssedata, unsigned int leg, Spin& loop_type) override;
             Spin GetLoopType(SSEData& ssedata, unsigned int leg) override;
-            std::vector<double> FindPathProbs(SSEData& ssedata, unsigned int leg) const override;
+            std::vector<double> FindPathProbs(SSEData& ssedata, unsigned int leg, const Spin& loop_type) const override;
             int FindOperatorType(SSEData& ssedata, unsigned int leg) const override;
             int FindOperatorType(std::vector<Spin> spn_state) const override;
             double FindOperatorWeight(SSEData& ssedata, unsigned int leg) const override;
@@ -158,13 +159,10 @@ namespace qmc{
             unsigned int length; //!< Number of sites (and bonds) of the lattice.
             double epsilon;
             std::mt19937 rdm_engine; //!< Random number generator engine
-            std::uniform_real_distribution<double> random_prob; //!< Calls rdm_engine to generate random bonds
             std::uniform_int_distribution<unsigned int> rdm_spin_norm;
             std::uniform_int_distribution<int> rdm_spin_sz;
 
     };
-
-
 }
 
 #endif // QMC_LATTICE_HPP_
