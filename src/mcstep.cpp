@@ -272,7 +272,9 @@ void MCStep::OperatorLoop(bool all_links_empty){
 
     // Second loop: Flip free spins
     for (unsigned int idx_spin(0); idx_spin < lattice->GetSpinNumber(); idx_spin++) {
-        if (sse_data->GetVFirst(idx_spin) == -1 && random_prob(rdm_engine) < 0.5){}// Choose random spin value
+        if (sse_data->GetVFirst(idx_spin) == -1){
+            sse_data->SetSpin(idx_spin, lattice->RandomSpin());
+        }// Choose random spin value
     }
 
 #if LOG_LEVEL > 1

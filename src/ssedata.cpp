@@ -17,9 +17,6 @@ SSEData::SSEData(unsigned int time_slots, Lattice* const lattice, std::mt19937* 
     : num_time_slots(time_slots), num_oprtr_type_(lattice->HowManyOperators()), pos_cfg(0), neg_cfg(0), lattice(lattice)
 {
     // Prepare random spin generation
-    unsigned int max_two_s(lattice->MaxTwoS());
-    std::uniform_int_distribution<unsigned int> random_spin(0,max_two_s);
-
     spins = std::vector<Spin>(lattice->GetSpinNumber(),Spin(-1,0));
     oprtr = std::vector<int>(num_time_slots,-1);
     link_vertex = std::vector<int>(4*num_time_slots,-1);
@@ -27,8 +24,7 @@ SSEData::SSEData(unsigned int time_slots, Lattice* const lattice, std::mt19937* 
 
     for(unsigned int idx_spin=0; idx_spin<lattice->GetSpinNumber(); idx_spin++){
         // TODO - Add spins with multiple S?
-        spins[idx_spin].two_norm = max_two_s;
-        spins[idx_spin].two_sz = 2*random_spin(*rdm_engine) - max_two_s;
+        spins[idx_spin] = lattice->RandomSpin();
     }
 }
 

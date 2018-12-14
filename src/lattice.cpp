@@ -58,7 +58,9 @@ namespace qmc{
      * (hence, the number of spins is also the number of bonds).
      * \param length Length of the lattice, ie. the site number.
      */
-    Lattice1D::Lattice1D(unsigned int length): length(length),rdm_engine(std::mt19937(5)),random_prob(std::uniform_real_distribution<double>(0.0,1.0)){}
+    Lattice1D::Lattice1D(unsigned int length): length(length),rdm_engine(std::mt19937(5)),random_prob(std::uniform_real_distribution<double>(0.0,1.0)){
+        rdm_spin_sz = std::uniform_int_distribution<int>(0,1);
+    }
 
     //! Returns spin indexes of a specific bond
     /*!
@@ -180,13 +182,70 @@ namespace qmc{
         return leg;
     }
 
-    Spin Lattice1D::GetLoopType(SSEData& ssedata, unsigned int leg) const{
+    Spin Lattice1D::GetLoopType(SSEData& ssedata, unsigned int leg) {
         Spin spn(ssedata.GetLegSpin(leg));
         if(spn.two_sz>0)
             spn.Lower();
         else
             spn.Raise();
         return spn;
+    }
+
+    Spin Lattice1D::RandomSpin(){
+        return Spin(1,2*rdm_spin_sz(rdm_engine)-1);
+    }
+
+    ////////////////////////////
+    // LATTICEDIAMOND //////////
+    ////////////////////////////
+
+    LatticeDiamond::LatticeDiamond(unsigned int length, double j2j1)
+        :length(2*length), epsilon(j2j1), rdm_engine(std::mt19937(7)),
+        random_prob(std::uniform_real_distribution<double>(.0,1.)),
+        rdm_spin_norm(std::uniform_int_distribution<unsigned int>(0,1)),
+        rdm_spin_sz(std::uniform_int_distribution<int>(-1,1)){}
+
+    std::vector<unsigned int> LatticeDiamond::GetSpinsIndex(unsigned int num_bond) const{
+        return std::vector<unsigned int>({num_bond,(num_bond+1)%length});
+    }
+
+    unsigned int LatticeDiamond::GetSpinNumber() const{ return length; }
+    unsigned int LatticeDiamond::GetBondNumber() const{ return length; }
+    unsigned int LatticeDiamond::HowManyOperators() const { return 7; }
+
+    bool LatticeDiamond::IsLoopStart(SSEData& ssedata, unsigned int leg) const{
+        if(ssedata.GetOperatorType(leg/4)<1)
+            return false; // If operator is full singlet (or empty)
+        else if(ssedata.GetLegSpin(leg).two_norm < 2)
+            return false; // If leg is singlet
+        return true;
+    }
+
+    unsigned int LatticeDiamond::ChooseMove(SSEData& ssedata, unsigned int leg, Spin& loop_type){ return 0; }
+    std::vector<double> LatticeDiamond::FindPathProbs(SSEData& ssedata, unsigned int leg) const;
+
+    Spin LatticeDiamond::GetLoopType(SSEData& ssedata, unsigned int leg){
+        Spin spn(ssedata.GetLegSpin(leg));
+        if(spn.two_norm<2)
+            return ssedata.GetLegSpin(leg); // FIXME - DIRTYYY
+        else if(spn.two_sz>0)
+            spn.Lower();
+        else if(spn.two_sz<0)
+            spn.Raise();
+        else if(random_prob(rdm_engine)<0.5)
+            spn.Raise(); // No restrictions, raise or lower.
+        else
+            spn.Lower();
+        return spn;
+    }
+
+    int LatticeDiamond::FindOperatorType(SSEData& ssedata, unsigned int leg) const{
+        return FindOperatorType(ssedata.GetBondVrtx(leg/4));
+    }
+
+    int LatticeDiamond::FindOperatorType(std::vector<Spin> spn_state) const{
+        if(spn_state.size()==2) // Append to itself if only two spins (ie diag op)
+            spn_state.insert(std::end(spn_state), std::begin(spn_state), std::end(spn_state));
     }
 
 } // namespace qmc

@@ -22,7 +22,7 @@ namespace qmc{
     };
     bool operator==(const Spin& a, const Spin& b);
     std::ostream& operator<<(std::ostream& stream, const Spin& spin);
-    
+
     //! Base class managing Lattice structures.
     /*!
      * This class is meant to enable OOP programmation later in the code. It
@@ -71,7 +71,7 @@ namespace qmc{
             virtual unsigned int HowManyOperators() const = 0;
             virtual unsigned int MaxTwoS() const = 0;
             virtual bool IsLoopStart(SSEData& ssedata, unsigned int leg) const = 0;
-            virtual Spin GetLoopType(SSEData& ssedata, unsigned int leg) const = 0;
+            virtual Spin GetLoopType(SSEData& ssedata, unsigned int leg) = 0;
             virtual unsigned int ChooseMove(SSEData& ssedata, unsigned int leg, Spin& loop_type) = 0;
             virtual std::vector<double> FindPathProbs(SSEData& ssedata, unsigned int leg) const = 0;
             virtual int FindOperatorType(SSEData& ssedata, unsigned int leg) const = 0;
@@ -84,7 +84,7 @@ namespace qmc{
             virtual bool IsDiagonal(SSEData& ssedata, unsigned int leg) const = 0;
             virtual bool IsDiagonal(int oprtr_type) const = 0;
             virtual std::vector<Spin> Propagate(std::vector<Spin> spn_state, unsigned int oprtr_type) const = 0;
-
+            virtual Spin RandomSpin() = 0;
         protected:
         private:
 
@@ -102,10 +102,9 @@ namespace qmc{
             unsigned int GetSpinNumber() const override;
             unsigned int GetBondNumber() const override;
             unsigned int HowManyOperators() const override{return 2;}
-            unsigned int MaxTwoS() const override{return 1;}
             bool IsLoopStart(SSEData& ssedata, unsigned int leg) const override;
             unsigned int ChooseMove(SSEData& ssedata, unsigned int leg, Spin& loop_type) override;
-            Spin GetLoopType(SSEData& ssedata, unsigned int leg) const override;
+            Spin GetLoopType(SSEData& ssedata, unsigned int leg) override;
             std::vector<double> FindPathProbs(SSEData& ssedata, unsigned int leg) const override;
             int FindOperatorType(SSEData& ssedata, unsigned int leg) const override;
             int FindOperatorType(std::vector<Spin> spn_state) const override;
@@ -117,13 +116,54 @@ namespace qmc{
             bool IsDiagonal(SSEData& ssedata, unsigned int leg) const override;
             bool IsDiagonal(int oprtr_type) const override;
             std::vector<Spin> Propagate(std::vector<Spin> spn_state, unsigned int oprtr_type) const override;
+            Spin RandomSpin() override;
         protected:
         private:
             unsigned int length; //!< Number of sites (and bonds) of the lattice.
             std::mt19937 rdm_engine; //!< Random number generator engine
             std::uniform_real_distribution<double> random_prob; //!< Calls rdm_engine to generate random bonds
+            std::uniform_int_distribution<int> rdm_spin_sz;
 
     };
+
+    //! Implementation of a linear one dimensionnal lattice structure.
+    /*!
+     * Name is pretty self-explanatory
+     */
+    class LatticeDiamond : public Lattice{
+        public:
+            LatticeDiamond(unsigned int length, double j2j1);
+            virtual ~LatticeDiamond(){};
+            std::vector<unsigned int> GetSpinsIndex(unsigned int num_bond) const override;
+            unsigned int GetSpinNumber() const override;
+            unsigned int GetBondNumber() const override;
+            unsigned int HowManyOperators() const override;
+            bool IsLoopStart(SSEData& ssedata, unsigned int leg) const override;
+            unsigned int ChooseMove(SSEData& ssedata, unsigned int leg, Spin& loop_type) override;
+            Spin GetLoopType(SSEData& ssedata, unsigned int leg) override;
+            std::vector<double> FindPathProbs(SSEData& ssedata, unsigned int leg) const override;
+            int FindOperatorType(SSEData& ssedata, unsigned int leg) const override;
+            int FindOperatorType(std::vector<Spin> spn_state) const override;
+            double FindOperatorWeight(SSEData& ssedata, unsigned int leg) const override;
+            double FindOperatorWeight(int oprtr_type) const override;
+            bool IsNegativeOperator(std::vector<Spin> spn_state) const override;
+            bool IsNegativeOperator(SSEData& ssedata, unsigned int leg) const override;
+            void SpecialUpdates(SSEData& ssedata) const override;
+            bool IsDiagonal(SSEData& ssedata, unsigned int leg) const override;
+            bool IsDiagonal(int oprtr_type) const override;
+            std::vector<Spin> Propagate(std::vector<Spin> spn_state, unsigned int oprtr_type) const override;
+            Spin RandomSpin() override;
+        protected:
+        private:
+            unsigned int length; //!< Number of sites (and bonds) of the lattice.
+            double epsilon;
+            std::mt19937 rdm_engine; //!< Random number generator engine
+            std::uniform_real_distribution<double> random_prob; //!< Calls rdm_engine to generate random bonds
+            std::uniform_int_distribution<unsigned int> rdm_spin_norm;
+            std::uniform_int_distribution<int> rdm_spin_sz;
+
+    };
+
 
 }
 
