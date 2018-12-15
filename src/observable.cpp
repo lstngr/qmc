@@ -21,7 +21,7 @@ void Observable::ClearObservable(){
 * \param beta Inverse temperature
 */
 ObservableHamilton::ObservableHamilton(double beta): Observable("Energy"), beta_(beta){
-    num_oprtr_ = std::vector<size_t>(); //Make sure the measurements vector is empty.
+    num_oprtr_ = std::vector<int>(); //Make sure the measurements vector is empty.
 }
 
 /*! \brief Updates the number of operators stored in
@@ -60,18 +60,16 @@ void ObservableHamilton::ClearObservable() {
 }
 
 ObservableSign::ObservableSign()
-    :Observable("Neg. Sign"), ratios(std::vector<double>()){}
+    :Observable("Sign"){}
 
-void ObservableSign::UpdateObservable(SSEData* const sim_data, short sign){
+void ObservableSign::UpdateObservable(SSEData* const /*sim_data*/, short sign){
     AddSign(sign);
-    ratios.push_back(sim_data->GetNegativeWeightRatio());
 }
 
 double ObservableSign::Measure() const{
-    return std::accumulate(ratios.begin(), ratios.end(), .0) / ratios.size() / MeanSign();
+    return Observable::MeanSign();
 }
 
 void ObservableSign::ClearObservable() {
     Observable::ClearObservable();
-    ratios.clear();
 }

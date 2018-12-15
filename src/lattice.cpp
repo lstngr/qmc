@@ -81,6 +81,52 @@ namespace qmc{
     //! Lattice class constructor
     Lattice::Lattice(){}
 
+    unsigned int Lattice::ChooseMove(SSEData& ssedata, unsigned int leg, unsigned int leg_start, Spin& loop_type){
+        int del_sz(loop_type.two_sz-ssedata.GetLegSpin(leg).two_sz);
+        if(leg==leg_start){
+            if(del_sz==0)
+                return leg_start;
+            else
+                throw std::logic_error(std::string("Weirdbounce"));
+        }
+        std::vector<double> path_probs(FindPathProbs(ssedata,leg,loop_type));
+        std::vector<double> comb_probs(path_probs.size());
+        std::partial_sum(path_probs.begin(), path_probs.end(), comb_probs.begin());
+        ssedata.SetSpinVrtx(leg,loop_type);
+
+        // Choose Move and update
+        double path_selector = random_prob(rdm_engine);
+        if(path_selector < comb_probs[0]){
+            // Bounce
+            // Revert spin change and looptype
+        }
+        else if(path_selector < comb_probs[1]){
+            // CS
+            leg = ssedata.ContinueStraight(leg);
+            if(del_sz>0)
+                loop_type = ssedata.GetLegSpin(leg).Raise();
+            else
+                loop_type = ssedata.GetLegSpin(leg).Lower();
+        }
+        else if(path_selector < comb_probs[2]){
+            // SWC
+            leg = ssedata.SwitchAndContinue(leg);
+            if(del_sz>0)
+                loop_type = ssedata.GetLegSpin(leg).Raise();
+            else
+                loop_type = ssedata.GetLegSpin(leg).Lower();
+        }
+        else{
+            // SWR
+            leg = ssedata.SwitchAndReverse(leg);
+            if(del_sz>0)
+                loop_type = ssedata.GetLegSpin(leg).Lower();
+            else
+                loop_type = ssedata.GetLegSpin(leg).Raise();
+        }
+        ssedata.SetSpinVrtx(leg,loop_type);
+        return leg;
+    }
     ////////////////////////////
     // LATTICE1D ///////////////
     ////////////////////////////
@@ -171,7 +217,7 @@ namespace qmc{
         return false;
     }
 
-    void Lattice1D::SpecialUpdates(SSEData& /*ssedata*/) const{}
+    void Lattice1D::SpecialUpdates(SSEData& /*ssedata*/) {}
 
     bool Lattice1D::IsDiagonal(int oprtr_type) const{
         if(oprtr_type==0)
@@ -193,38 +239,6 @@ namespace qmc{
             spn_state[0].Lower(); spn_state[1].Raise();
         }
         return spn_state;
-    }
-
-    unsigned int Lattice1D::ChooseMove(SSEData& ssedata, unsigned int leg, Spin& loop_type){
-        std::vector<double> path_probs(FindPathProbs(ssedata,leg,loop_type));
-        std::vector<double> comb_probs(path_probs.size());
-        std::partial_sum(path_probs.begin(), path_probs.end(), comb_probs.begin());
-        ssedata.SetSpinVrtx(leg,loop_type);
-
-        // Choose Move and update
-        double path_selector = random_prob(rdm_engine);
-        if(path_selector < comb_probs[0]){
-            // Bounce
-            // Revert spin change and looptype
-        }
-        else if(path_selector < comb_probs[1]){
-            // CS
-            leg = ssedata.ContinueStraight(leg);
-        }
-        else if(path_selector < comb_probs[2]){
-            // SWC
-            leg = ssedata.SwitchAndContinue(leg);
-        }
-        else{
-            // SWR
-            leg = ssedata.SwitchAndReverse(leg);
-            if(loop_type.two_sz>0)
-                loop_type.Lower();
-            else
-                loop_type.Raise();
-        }
-        ssedata.SetSpinVrtx(leg,loop_type);
-        return leg;
     }
 
     Spin Lattice1D::GetLoopType(SSEData& ssedata, unsigned int leg) {
@@ -263,47 +277,6 @@ namespace qmc{
         else if(ssedata.GetLegSpin(leg).two_norm < 2)
             return false; // If leg is singlet
         return true;
-    }
-
-    unsigned int LatticeDiamond::ChooseMove(SSEData& ssedata, unsigned int leg, Spin& loop_type){
-        std::vector<double> path_probs(FindPathProbs(ssedata,leg,loop_type));
-        std::vector<double> comb_probs(path_probs.size());
-        std::partial_sum(path_probs.begin(), path_probs.end(), comb_probs.begin());
-        int del_sz(loop_type.two_sz-ssedata.GetLegSpin(leg).two_sz);
-        ssedata.SetSpinVrtx(leg,loop_type);
-
-        // Choose Move and update
-        double path_selector = random_prob(rdm_engine);
-        if(path_selector < comb_probs[0]){
-            // Bounce
-            // Revert spin change and looptype
-        }
-        else if(path_selector < comb_probs[1]){
-            // CS
-            leg = ssedata.ContinueStraight(leg);
-            if(del_sz>0)
-                loop_type = ssedata.GetLegSpin(leg).Raise();
-            else
-                loop_type = ssedata.GetLegSpin(leg).Lower();
-        }
-        else if(path_selector < comb_probs[2]){
-            // SWC
-            leg = ssedata.SwitchAndContinue(leg);
-            if(del_sz>0)
-                loop_type = ssedata.GetLegSpin(leg).Raise();
-            else
-                loop_type = ssedata.GetLegSpin(leg).Lower();
-        }
-        else{
-            // SWR
-            leg = ssedata.SwitchAndReverse(leg);
-            if(del_sz>0)
-                loop_type = ssedata.GetLegSpin(leg).Lower();
-            else
-                loop_type = ssedata.GetLegSpin(leg).Raise();
-        }
-        ssedata.SetSpinVrtx(leg,loop_type);
-        return leg;
     }
 
     std::vector<double> LatticeDiamond::FindPathProbs(SSEData& ssedata, unsigned int leg, const Spin& loop_type) const{
@@ -374,7 +347,7 @@ namespace qmc{
     Spin LatticeDiamond::GetLoopType(SSEData& ssedata, unsigned int leg){
         Spin spn(ssedata.GetLegSpin(leg));
         if(spn.two_norm<2)
-            return ssedata.GetLegSpin(leg); // FIXME - DIRTYYYY
+            throw std::logic_error(std::string("DIRTYYY"));
         else if(spn.two_sz>0)
             spn.Lower();
         else if(spn.two_sz<0)
@@ -396,9 +369,12 @@ namespace qmc{
         std::vector<Spin> spn_state(ssedata.GetBondSpins(bond));
         if(bond%2){ // Location at B-site requires spin swapping
             std::iter_swap(spn_state.begin()  ,spn_state.begin()+1);
-            std::iter_swap(spn_state.begin()+2,spn_state.begin()+3);
         }
-        return Propagate(spn_state,ssedata.GetOperatorType(oprtr));
+        spn_state = Propagate(spn_state,ssedata.GetOperatorType(oprtr));
+        if(bond%2){ // Location at B-site requires spin swapping
+            std::iter_swap(spn_state.begin()  ,spn_state.begin()+1);
+        }
+        return spn_state;
     }
 
     int LatticeDiamond::FindBondType(SSEData& ssedata, unsigned int bond) const{
@@ -452,7 +428,7 @@ namespace qmc{
             return 4; // TpTm
         else if(spn_state[2].two_sz - spn_state[0].two_sz < 0)
             return 5; // TmTp
-        else if(spn_state[0].two_sz + spn_state[1].two_sz == 0 
+        else if(spn_state[0].two_sz + spn_state[1].two_sz == 0
                 and spn_state[0].two_sz != 0){
             return 1; // PlusMinus TzTz
         }
@@ -500,7 +476,178 @@ namespace qmc{
         return IsNegativeOperator(spn_state);
     }
 
-    void LatticeDiamond::SpecialUpdates(SSEData& ssedata) const{}
+    void LatticeDiamond::SpecialUpdates(SSEData& ssedata) {
+        ASiteUpdate(ssedata);
+        BSiteUpdate(ssedata);
+    }
+
+    void LatticeDiamond::ASiteUpdate(SSEData& ssedata) {
+        for(unsigned int idx_spin(0); idx_spin<this->GetSpinNumber();
+                idx_spin+=2){
+            int init_leg(ssedata.GetVFirst(idx_spin));
+            int clst_leg(init_leg); // Cluster taging leg
+            double prob(1.);
+            if(init_leg!=-1){ // Otherwise updated in Sweep
+                std::vector<int> old_oprtr_type({});
+                std::vector<int> new_oprtr_type({});
+                std::vector<unsigned int> clst_legs({});
+                // Fill type difference vectors
+                do{
+                    int some_type(ssedata.GetOperatorType(clst_leg/4));
+                    if(some_type==1) some_type=-1;
+                    else if((some_type==2 or some_type==3) and ssedata.GetLegSpin(clst_leg).two_sz!=0) some_type=-1;
+                    old_oprtr_type.push_back(some_type);
+                    switch(some_type){
+                        case 0: some_type=2; break;
+                        case 3: some_type=2; break;
+                        case 4: some_type=6; break;
+                        case 5: some_type=7; break;
+                        case 6: some_type=4; break;
+                        case 7: some_type=5; break;
+                        case 2:
+                                std::vector<Spin> spn_state(ssedata.GetBondVrtx(clst_leg/4));
+                                if(spn_state[clst_leg%4].two_norm==0){ //Already know spin is in cluster
+                                    spn_state[clst_leg%4].Promote();
+                                    spn_state[ssedata.ContinueStraight(clst_leg)%4].Promote();
+                                } else {
+                                    spn_state[clst_leg%4].Demote();
+                                    spn_state[ssedata.ContinueStraight(clst_leg)%4].Demote();
+                                }
+                                if(clst_leg%2){ // Operator acts on BA site
+                                    std::iter_swap(spn_state.begin()  ,spn_state.begin()+1);
+                                    std::iter_swap(spn_state.begin()+2,spn_state.begin()+3);
+                                }
+                                some_type = this->FindOperatorType(spn_state);
+                                break;
+                    }
+                    new_oprtr_type.push_back(some_type);
+                    clst_legs.push_back(clst_leg);
+                    clst_leg = ssedata.GetLink(ssedata.ContinueStraight(clst_leg));
+                }while(clst_leg!=init_leg);
+
+                // Check something can actually be flipped
+                bool may_flip(false);
+                for(unsigned int idx_oprtr(0); idx_oprtr<old_oprtr_type.size(); idx_oprtr++){
+                    if(old_oprtr_type[idx_oprtr]!=-1) may_flip=true;
+                }
+                if(not may_flip) return;
+
+                // Compute cluster flip probabilities.
+                bool clst_computed(false);
+                int first_clst(-1);
+                int idx_oprtr(0);
+                unsigned int num_oprtr(old_oprtr_type.size());
+                do{
+                    unsigned int left_idx ((idx_oprtr+num_oprtr-1)%num_oprtr);
+                    unsigned int right_idx((idx_oprtr+num_oprtr+1)%num_oprtr);
+                    if(new_oprtr_type[idx_oprtr]==-1) idx_oprtr = right_idx;
+                    else if(new_oprtr_type[left_idx]!=-1){
+                        idx_oprtr = left_idx;
+                        if(idx_oprtr==0){
+                            // We browsed the whole set without finding edges,
+                            // compute the whole flip probability.
+                            for(unsigned int idx_flip(0); idx_flip<num_oprtr; idx_flip++){
+                                prob *= this->FindOperatorWeight(new_oprtr_type[idx_flip]) / this->FindOperatorWeight(old_oprtr_type[idx_flip]);
+                            }
+                            if(random_prob(rdm_engine)<prob){
+                                for(unsigned int idx_flip(0); idx_flip<num_oprtr; idx_flip++){
+                                    // Iterate through cluster data and flip spins
+                                    ssedata.SetOperator(clst_legs[idx_flip]/4, new_oprtr_type[idx_flip],
+                                            ssedata.GetOperatorBond(clst_legs[idx_flip]/4),false);
+                                    Spin leg_spin(ssedata.GetLegSpin(clst_legs[idx_flip]));
+                                    if(leg_spin.two_norm==0)
+                                        ssedata.SetSpinVrtx(clst_legs[idx_flip],leg_spin.Promote());
+                                    else
+                                        ssedata.SetSpinVrtx(clst_legs[idx_flip],leg_spin.Demote());
+                                    leg_spin=ssedata.GetLegSpin(ssedata.ContinueStraight(clst_legs[idx_flip]));
+                                    if(leg_spin.two_norm==0)
+                                        ssedata.SetSpinVrtx(ssedata.ContinueStraight(clst_legs[idx_flip]),leg_spin.Promote());
+                                    else
+                                        ssedata.SetSpinVrtx(ssedata.ContinueStraight(clst_legs[idx_flip]),leg_spin.Demote());
+                                }
+                            }
+                            clst_computed = true;
+                        }
+                    }
+                    else if(idx_oprtr==first_clst) clst_computed=true; // We are on the edge of the first cluster we found. Exit loop
+                    else{ // We sit on (bottom) cluster edge
+                        if(first_clst==-1) //Record first cluster encounter
+                            first_clst = idx_oprtr;
+                        unsigned int clst_start(idx_oprtr);
+                        do{ // Compute flip probability
+                            prob *= this->FindOperatorWeight(new_oprtr_type[idx_oprtr]) / this->FindOperatorWeight(old_oprtr_type[idx_oprtr]);
+                            idx_oprtr = (idx_oprtr+num_oprtr+1)%num_oprtr; // Move right
+                        }while(new_oprtr_type[idx_oprtr]==-1); // We reach end of cluster
+                        if(random_prob(rdm_engine)<prob){ // Decide flipping the cluster
+                            for(int idx_flip(clst_start); idx_flip<idx_oprtr; idx_flip++){
+                                // Iterate through cluster data and flip spins
+                                ssedata.SetOperator(clst_legs[idx_flip]/4, new_oprtr_type[idx_flip],
+                                        ssedata.GetOperatorBond(clst_legs[idx_flip]/4),false);
+                                Spin leg_spin(ssedata.GetLegSpin(clst_legs[idx_flip]));
+                                if(leg_spin.two_norm==0)
+                                    ssedata.SetSpinVrtx(clst_legs[idx_flip],leg_spin.Promote());
+                                else
+                                    ssedata.SetSpinVrtx(clst_legs[idx_flip],leg_spin.Demote());
+                                leg_spin=ssedata.GetLegSpin(ssedata.ContinueStraight(clst_legs[idx_flip]));
+                                if(leg_spin.two_norm==0)
+                                    ssedata.SetSpinVrtx(ssedata.ContinueStraight(clst_legs[idx_flip]),leg_spin.Promote());
+                                else
+                                    ssedata.SetSpinVrtx(ssedata.ContinueStraight(clst_legs[idx_flip]),leg_spin.Demote());
+                            }
+                        }
+                        prob = 1.;
+                    }
+                }while(not clst_computed);
+            }
+        }
+    }
+
+    void LatticeDiamond::BSiteUpdate(SSEData& ssedata) {
+        for(unsigned int idx_spin(1);
+                idx_spin<this->GetSpinNumber();idx_spin+=2){
+            int init_leg(ssedata.GetVFirst(idx_spin));
+            double prob(1.);
+            if(init_leg!=-1) {// Spin flipping is taken care of by DiagUpdate
+                // Initialize "loop type"
+                Spin curSpin(ssedata.GetLegSpin(init_leg));
+                Spin loop_type(Spin(-1,0));
+                if(curSpin.two_norm==0)
+                    loop_type=Spin(2,0);
+                else
+                    loop_type=Spin(0,0);
+
+                // Compute Flip Probability
+                int leg_idx(init_leg);
+                do{
+                    int oprtr_type(ssedata.GetOperatorType(leg_idx/4));
+                    if(not this->IsDiagonal(oprtr_type))
+                        return; // Spin is changing, abort
+                    else if(oprtr_type!=2)
+                        prob *= this->FindOperatorWeight(2)/this->FindOperatorWeight(oprtr_type);
+                    else{
+                        std::vector<Spin> spn_state(ssedata.GetBondVrtx(leg_idx/4));
+                        int in_leg(leg_idx%4);
+                        spn_state[in_leg] = loop_type;
+                        spn_state[ssedata.ContinueStraight(in_leg)] = loop_type;
+                        prob *= this->FindOperatorWeight(this->FindOperatorType(spn_state)) / this->FindOperatorWeight(2);
+                    }
+                    leg_idx = ssedata.GetLink(ssedata.ContinueStraight(leg_idx));
+                }while(leg_idx!=init_leg);
+
+                // Try flip
+                double flip_prob(random_prob(rdm_engine));
+                if(flip_prob<prob){
+                    do{
+                        ssedata.SetSpinVrtx(leg_idx,loop_type);
+                        ssedata.SetSpinVrtx(ssedata.ContinueStraight(leg_idx),loop_type);
+                        ssedata.SetOperator(leg_idx/4,this->FindOperatorType(ssedata,leg_idx),
+                                ssedata.GetOperatorBond(leg_idx/4),false);
+                        leg_idx = ssedata.GetLink(ssedata.ContinueStraight(leg_idx));
+                    }while(leg_idx!=init_leg);
+                }
+            }
+        }
+    }
 
     bool LatticeDiamond::IsDiagonal(SSEData& ssedata, unsigned int leg) const{
         return IsDiagonal(FindOperatorType(ssedata,leg));

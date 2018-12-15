@@ -105,6 +105,7 @@ void MCStep::Sweep(unsigned int num_sweep){
         DiagUpdate();
         LinkVertices();
         // OperatorLoop is implicitely called from LinkVertices.
+        lattice->SpecialUpdates(*sse_data);
         sse_data->Equilibrate(expansion_factor);
         random_leg = std::uniform_int_distribution<unsigned int>(0,4*sse_data->GetOperatorNumber(false)-1);
         sse_data->UpdateSpinState();
@@ -230,9 +231,11 @@ void MCStep::OperatorLoop(bool all_links_empty){
     unsigned int leg_counter(0); // Counts legs to exit following loops
 
     if(not all_links_empty){
+        unsigned int start_tries(0);
         // First loop: Flip loops
         do {
             // Needs to be int for while exit criterion
+            start_tries=0;
             int idx_loop(random_leg(rdm_engine));
             int idx_loop_start(idx_loop);
 
@@ -241,21 +244,24 @@ void MCStep::OperatorLoop(bool all_links_empty){
                 do{
                     // Update bond vertex
                     idx_loop = sse_data->GetLink(idx_loop);
-                    // Get Moves
-                    idx_loop = lattice->ChooseMove(*sse_data, idx_loop, loop_type);
+                    // Get Move (handles bond vrtx update)
+                    idx_loop = lattice->ChooseMove(*sse_data, idx_loop, idx_loop_start,loop_type);
                     unsigned int thebond(sse_data->GetOperatorBond(idx_loop/4));
                     sse_data->SetOperator(idx_loop/4,
                             lattice->FindOperatorType(*sse_data, idx_loop),
                             thebond);
-                    // TODO -- Fix bond determination
-
                     // Update leg counter
                     leg_counter++;
                 } while (idx_loop != idx_loop_start);
                 // The loop exists when idx_loop points to the start location.
+            } else {
+                start_tries++;
             }
-        } while(leg_counter < 4*sse_data->GetOperatorNumber(false));
+        } while(leg_counter < 4*sse_data->GetOperatorNumber(false) and
+                start_tries > 2*sse_data->GetOperatorNumber(false));
         // Stop when enough loops have been performed
+        // or when an arbitrary number of unsucessful start tries have been
+        // made.
     }
 
     // Second loop: Flip free spins

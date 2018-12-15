@@ -74,7 +74,7 @@ namespace qmc{
             virtual unsigned int HowManyOperators() const = 0;
             virtual bool IsLoopStart(SSEData& ssedata, unsigned int leg) const = 0;
             virtual Spin GetLoopType(SSEData& ssedata, unsigned int leg) = 0;
-            virtual unsigned int ChooseMove(SSEData& ssedata, unsigned int leg, Spin& loop_type) = 0;
+            virtual unsigned int ChooseMove(SSEData& ssedata, unsigned int leg, unsigned int leg_start, Spin& loop_type);
             virtual std::vector<double> FindPathProbs(SSEData& ssedata, unsigned int leg, const Spin& loop_type) const = 0;
             virtual int FindOperatorType(SSEData& ssedata, unsigned int leg) const = 0;
             virtual int FindBondType(SSEData& ssedata, unsigned int bond) const = 0;
@@ -82,7 +82,7 @@ namespace qmc{
             virtual double FindOperatorWeight(SSEData& ssedata, unsigned int leg) const = 0;
             virtual double FindOperatorWeight(int oprtr_type) const = 0;
             virtual bool IsNegativeOperator(SSEData& ssedata, unsigned int leg) const = 0;
-            virtual void SpecialUpdates(SSEData& ssedata) const = 0;
+            virtual void SpecialUpdates(SSEData& ssedata) = 0;
             virtual bool IsDiagonal(SSEData& ssedata, unsigned int leg) const = 0;
             virtual bool IsDiagonal(int oprtr_type) const = 0;
             virtual Spin RandomSpin() = 0;
@@ -94,7 +94,7 @@ namespace qmc{
             static std::uniform_real_distribution<double>random_prob;
         private:
     };
-    
+
     //! Implementation of a linear one dimensionnal lattice structure.
     /*!
      * Name is pretty self-explanatory
@@ -108,7 +108,6 @@ namespace qmc{
             unsigned int GetBondNumber() const override;
             unsigned int HowManyOperators() const override{return 2;}
             bool IsLoopStart(SSEData& ssedata, unsigned int leg) const override;
-            unsigned int ChooseMove(SSEData& ssedata, unsigned int leg, Spin& loop_type) override;
             Spin GetLoopType(SSEData& ssedata, unsigned int leg) override;
             std::vector<double> FindPathProbs(SSEData& ssedata, unsigned int leg, const Spin& loop_type) const override;
             int FindOperatorType(SSEData& ssedata, unsigned int leg) const override;
@@ -117,7 +116,7 @@ namespace qmc{
             double FindOperatorWeight(SSEData& ssedata, unsigned int leg) const override;
             double FindOperatorWeight(int oprtr_type) const override;
             bool IsNegativeOperator(SSEData& ssedata, unsigned int leg) const override;
-            void SpecialUpdates(SSEData& ssedata) const override;
+            void SpecialUpdates(SSEData& ssedata) override;
             bool IsDiagonal(SSEData& ssedata, unsigned int leg) const override;
             bool IsDiagonal(int oprtr_type) const override;
             Spin RandomSpin() override;
@@ -144,7 +143,6 @@ namespace qmc{
             unsigned int GetBondNumber() const override;
             unsigned int HowManyOperators() const override;
             bool IsLoopStart(SSEData& ssedata, unsigned int leg) const override;
-            unsigned int ChooseMove(SSEData& ssedata, unsigned int leg, Spin& loop_type) override;
             Spin GetLoopType(SSEData& ssedata, unsigned int leg) override;
             std::vector<double> FindPathProbs(SSEData& ssedata, unsigned int leg, const Spin& loop_type) const override;
             int FindOperatorType(SSEData& ssedata, unsigned int leg) const override;
@@ -153,7 +151,9 @@ namespace qmc{
             double FindOperatorWeight(SSEData& ssedata, unsigned int leg) const override;
             double FindOperatorWeight(int oprtr_type) const override;
             bool IsNegativeOperator(SSEData& ssedata, unsigned int leg) const override;
-            void SpecialUpdates(SSEData& ssedata) const override;
+            void SpecialUpdates(SSEData& ssedata) override;
+            void ASiteUpdate(SSEData& ssedata);
+            void BSiteUpdate(SSEData& ssedata);
             bool IsDiagonal(SSEData& ssedata, unsigned int leg) const override;
             bool IsDiagonal(int oprtr_type) const override;
             Spin RandomSpin() override;

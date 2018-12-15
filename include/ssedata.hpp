@@ -39,9 +39,9 @@ namespace qmc{
             void PrintOperators() const;
             void PrintSpins() const;
             void PrintLinks() const;
-            int SwitchAndReverse (int idx_leg) const;
-            int ContinueStraight (int idx_leg) const;
-            int SwitchAndContinue(int idx_leg) const;
+            unsigned int SwitchAndReverse (unsigned int idx_leg) const;
+            unsigned int ContinueStraight (unsigned int idx_leg) const;
+            unsigned int SwitchAndContinue(unsigned int idx_leg) const;
 
             void SetOperator(unsigned int idx_oprtr, int oprtr_type=-1, int oprtr_bond=0, bool update_bond_vrtx=false);
             void FlipOperator(unsigned int idx_oprtr); // Deprecated

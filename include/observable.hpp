@@ -51,7 +51,7 @@ namespace qmc{
             virtual double Measure() const;
             virtual void ClearObservable();
         protected:
-            std::vector<size_t> num_oprtr_; /*!<Stores the number of inserted operators for every iteration.*/
+            std::vector<int> num_oprtr_; /*!<Stores the number of inserted operators for every iteration.*/
             double beta_; /*!< Inverse temperature of the system. It is set at class instantiation.*/
     };
 
@@ -64,7 +64,6 @@ namespace qmc{
             void ClearObservable();
         protected:
         private:
-            std::vector<double> ratios;
     };
 
 };

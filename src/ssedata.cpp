@@ -260,17 +260,17 @@ void SSEData::SetVLast(unsigned int idx_spin, unsigned int idx_leg){
  * \param idx_leg Index of the leg to start from.
  * \return Index of the leg after a SWR procedure.
  */
-int SSEData::SwitchAndReverse(int idx_leg) const {
+unsigned int SSEData::SwitchAndReverse(unsigned int idx_leg) const {
     // idx_leg XOR 1
-    return idx_leg ^ 1 << 0;
+    return idx_leg ^ 1U << 0;
 }
 
-int SSEData::ContinueStraight(int idx_leg) const {
+unsigned int SSEData::ContinueStraight(unsigned int idx_leg) const {
     // idx_leg XOR 10
-    return idx_leg ^ 1 << 1;
+    return idx_leg ^ 1U << 1;
 }
 
-int SSEData::SwitchAndContinue(int idx_leg) const {
+unsigned int SSEData::SwitchAndContinue(unsigned int idx_leg) const {
     return SwitchAndReverse(ContinueStraight(idx_leg));
 }
 
