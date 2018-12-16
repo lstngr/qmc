@@ -87,7 +87,7 @@ namespace qmc{
             if(del_sz==0)
                 return leg_start;
             else
-                throw std::logic_error(std::string("Weirdbounce"));
+                throw std::logic_error(std::string("Loop is closed with non-zero delta sz."));
         }
         std::vector<double> path_probs(FindPathProbs(ssedata,leg,loop_type));
         std::vector<double> comb_probs(path_probs.size());
@@ -280,7 +280,8 @@ namespace qmc{
     }
 
     std::vector<double> LatticeDiamond::FindPathProbs(SSEData& ssedata, unsigned int leg, const Spin& loop_type) const{
-        // XXX - Expect triplet loop type.
+        if(loop_type.two_norm<2)
+            throw std::logic_error(std::string("Expected triplet loop_type."));
         std::vector<Spin> spn_state(ssedata.GetBondVrtx(leg/4));
         if(FindOperatorType(ssedata,leg)==2) // CS mandatory
             return std::vector<double>({0.,1.,0.,0.});
@@ -347,18 +348,14 @@ namespace qmc{
     Spin LatticeDiamond::GetLoopType(SSEData& ssedata, unsigned int leg){
         Spin spn(ssedata.GetLegSpin(leg));
         if(spn.two_norm<2)
-            throw std::logic_error(std::string("DIRTYYY"));
+            throw std::logic_error(std::string("Shouldn't ask loop_type on singlet legs"));
         else if(spn.two_sz>0)
             spn.Lower();
         else if(spn.two_sz<0)
             spn.Raise();
-        else if(random_prob(rdm_engine)<0.5){
-            std::vector<Spin> spn_state(ssedata.GetBondVrtx(leg/4));
-            if(spn_state[ssedata.ContinueStraight(leg)%4].two_sz>0)
-                spn.Raise(); // No restrictions, raise or lower.
-            else
-                spn.Lower();
-        }
+        else if(random_prob(rdm_engine)<0.5)
+            // Current spin is null triplet
+            spn.Raise();
         else
             spn.Lower();
         return spn;
@@ -449,7 +446,7 @@ namespace qmc{
             return epsilon;
         else if(oprtr_type==2)
             return .5*(1.+epsilon);
-        else if(oprtr_type>2 and oprtr_type<7)
+        else if(oprtr_type>2 and oprtr_type<9)
             return epsilon/2.;
         return 0.;
     }
@@ -530,7 +527,6 @@ namespace qmc{
                 for(unsigned int idx_oprtr(0); idx_oprtr<old_oprtr_type.size(); idx_oprtr++){
                     if(old_oprtr_type[idx_oprtr]!=-1) may_flip=true;
                 }
-                if(not may_flip) return;
 
                 // Compute cluster flip probabilities.
                 bool clst_computed(false);
@@ -540,7 +536,8 @@ namespace qmc{
                 do{
                     unsigned int left_idx ((idx_oprtr+num_oprtr-1)%num_oprtr);
                     unsigned int right_idx((idx_oprtr+num_oprtr+1)%num_oprtr);
-                    if(new_oprtr_type[idx_oprtr]==-1) idx_oprtr = right_idx;
+                    if(not may_flip) break;
+                    else if(new_oprtr_type[idx_oprtr]==-1) idx_oprtr = right_idx;
                     else if(new_oprtr_type[left_idx]!=-1){
                         idx_oprtr = left_idx;
                         if(idx_oprtr==0){
@@ -555,15 +552,19 @@ namespace qmc{
                                     ssedata.SetOperator(clst_legs[idx_flip]/4, new_oprtr_type[idx_flip],
                                             ssedata.GetOperatorBond(clst_legs[idx_flip]/4),false);
                                     Spin leg_spin(ssedata.GetLegSpin(clst_legs[idx_flip]));
-                                    if(leg_spin.two_norm==0)
-                                        ssedata.SetSpinVrtx(clst_legs[idx_flip],leg_spin.Promote());
-                                    else
-                                        ssedata.SetSpinVrtx(clst_legs[idx_flip],leg_spin.Demote());
+                                    if(leg_spin.two_sz==0){
+                                        if(leg_spin.two_norm==0)
+                                            ssedata.SetSpinVrtx(clst_legs[idx_flip],leg_spin.Promote());
+                                        else
+                                            ssedata.SetSpinVrtx(clst_legs[idx_flip],leg_spin.Demote());
+                                    }
                                     leg_spin=ssedata.GetLegSpin(ssedata.ContinueStraight(clst_legs[idx_flip]));
-                                    if(leg_spin.two_norm==0)
-                                        ssedata.SetSpinVrtx(ssedata.ContinueStraight(clst_legs[idx_flip]),leg_spin.Promote());
-                                    else
-                                        ssedata.SetSpinVrtx(ssedata.ContinueStraight(clst_legs[idx_flip]),leg_spin.Demote());
+                                    if(leg_spin.two_sz==0){
+                                        if(leg_spin.two_norm==0)
+                                            ssedata.SetSpinVrtx(ssedata.ContinueStraight(clst_legs[idx_flip]),leg_spin.Promote());
+                                        else
+                                            ssedata.SetSpinVrtx(ssedata.ContinueStraight(clst_legs[idx_flip]),leg_spin.Demote());
+                                    }
                                 }
                             }
                             clst_computed = true;
@@ -618,11 +619,13 @@ namespace qmc{
 
                 // Compute Flip Probability
                 int leg_idx(init_leg);
+                bool may_flip(true);
                 do{
                     int oprtr_type(ssedata.GetOperatorType(leg_idx/4));
-                    if(not this->IsDiagonal(oprtr_type))
-                        return; // Spin is changing, abort
-                    else if(oprtr_type!=2)
+                    if(not this->IsDiagonal(oprtr_type)){
+                        may_flip = false;
+                        break; // Spin is changing, abort
+                    } else if(oprtr_type!=2)
                         prob *= this->FindOperatorWeight(2)/this->FindOperatorWeight(oprtr_type);
                     else{
                         std::vector<Spin> spn_state(ssedata.GetBondVrtx(leg_idx/4));
@@ -636,7 +639,7 @@ namespace qmc{
 
                 // Try flip
                 double flip_prob(random_prob(rdm_engine));
-                if(flip_prob<prob){
+                if(may_flip and flip_prob<prob){
                     do{
                         ssedata.SetSpinVrtx(leg_idx,loop_type);
                         ssedata.SetSpinVrtx(ssedata.ContinueStraight(leg_idx),loop_type);

@@ -235,11 +235,10 @@ void MCStep::OperatorLoop(bool all_links_empty){
         // First loop: Flip loops
         do {
             // Needs to be int for while exit criterion
-            start_tries=0;
             int idx_loop(random_leg(rdm_engine));
             int idx_loop_start(idx_loop);
-
             if (lattice->IsLoopStart(*sse_data,idx_loop)) {
+                start_tries=0;
                 Spin loop_type(lattice->GetLoopType(*sse_data,idx_loop));
                 do{
                     // Update bond vertex
@@ -258,7 +257,7 @@ void MCStep::OperatorLoop(bool all_links_empty){
                 start_tries++;
             }
         } while(leg_counter < 4*sse_data->GetOperatorNumber(false) and
-                start_tries > 2*sse_data->GetOperatorNumber(false));
+                start_tries < 2*sse_data->GetOperatorNumber(false));
         // Stop when enough loops have been performed
         // or when an arbitrary number of unsucessful start tries have been
         // made.

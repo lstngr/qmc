@@ -122,16 +122,19 @@ int SSEData::GetOperatorBond(unsigned int idx_oprtr) const{
 void SSEData::SetOperator(unsigned int idx_oprtr, int oprtr_type, int oprtr_bond, bool update_bond_vrtx){
     // Should implement index and value checks
     // Note: bool mainly for diagonal insertions/removals
+    if(oprtr_type==-1 and oprtr_bond!=0)
+        throw std::logic_error(std::string("Unexpected operator emptying."));
     oprtr[idx_oprtr] = oprtr_type + num_oprtr_type_ * oprtr_bond;
     if(update_bond_vrtx){
         if(oprtr_type==-1)
             bond_vertex_[idx_oprtr] = std::vector<Spin>(4,Spin(-1,0));
         else if(lattice->IsDiagonal(oprtr_type)){
-            unsigned int thebond(GetOperatorBond(idx_oprtr));
             // Okay while diag update since alpha being propagated
-            std::vector<Spin> d_spins(this->GetBondSpins(thebond));
+            std::vector<Spin> d_spins(this->GetBondSpins(oprtr_bond));
             d_spins.insert(std::end(d_spins), std::begin(d_spins), std::end(d_spins));
             bond_vertex_[idx_oprtr] = d_spins;
+        } else {
+            throw std::logic_error(std::string("Attempt to SetOperator with non diagonal operator."));
         }
     }
 }
