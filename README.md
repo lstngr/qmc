@@ -18,27 +18,15 @@ This project uses relies on (and compiles with) the following piece of software:
 ## How to browse this report?
 This README file is located at the root of the `Codes.zip` archive. The
 contents of the report are then split in subsequent folders:
-- `CPPv1/`: Code, makefile, input configurations and documentation of the first
-version of the code. This version performs a SSE QMC simulation of a spin
-half Heisenberg chain.
-- `CPPv2/`: Code, makefile, input configurations and (partial) documentation of
-the expansion of the code to the frustrated AF chain described in the
-report. It compiles and runs simulations for the Heisenberg chain, but
-has *failing* implementation of the frustrated AF chain. It is included for
-completness.
-- `Results`: A collection of outputs, used for testing convergence and accuracy
-of the former codes. Results with time stamp `1811**` were performed using
-version 1, those with `1812**` originate from version 2.
-- `Mathematica`: Scripts computing the exact diagonalization of the two
-considered systems, documentation for those scripts is found in the form of
-comments within them.
+- `CPPv1/`: Code, makefile, input configurations and documentation of the first version of the code. This version performs a SSE QMC simulation of a spin half Heisenberg chain.
+- `CPPv2/`: Code, makefile, input configurations and (partial) documentation of the expansion of the code to the frustrated AF chain described in the report. It compiles and runs simulations for the Heisenberg chain, but has _failing_ implementation of the frustrated AF chain. It is included for completness.
+- `Results`: A collection of outputs, used for testing convergence and accuracy of the former codes. Results with time stamp `1811**` were performed using version 1, those with `1812**` originate from version 2.
+- `Mathematica`: Scripts computing the exact diagonalization of the two considered systems, documentation for those scripts is found in the form of comments within them.
 - `Matlab`: Scripts for importing simulation results or running parameter scans.
-- `Report/`: LaTeX source code generating the report. It requires the following
-packages,
+- `Report/`: LaTeX source code generating the report. It requires the following packages,
   * AMS suite, braket, bm and bbm for mathematical notations
   * Hyperref, cleverref, caption, footmisc for captioning and references
-  * TiKz (with the calc and fit libraries), forloop and graphicx for graphical
-      elements
+  * TiKz (with the calc and fit libraries), forloop and graphicx for graphical elements
   * Algorithm and algpseudocode for pseudo-code write up.
 
 ## Compiling and running
