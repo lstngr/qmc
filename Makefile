@@ -29,3 +29,5 @@ cleandocs:
 	-rm -fr html/ latex/
 
 .PHONY : clean
+	
+.PHONY : cleandocs

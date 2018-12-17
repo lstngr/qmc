@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     12644,        329]
-NotebookOptionsPosition[     12021,        309]
-NotebookOutlinePosition[     12433,        325]
-CellTagsIndexPosition[     12390,        322]
+NotebookDataLength[     12890,        329]
+NotebookOptionsPosition[     12266,        309]
+NotebookOutlinePosition[     12678,        325]
+CellTagsIndexPosition[     12635,        322]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -23,17 +23,13 @@ Cell[CellGroupData[{
 Cell[BoxData[{
  RowBox[{
   RowBox[{
-   RowBox[{"L", "=", "8"}], ";"}], " ", 
-  RowBox[{"(*", 
-   RowBox[{"system", " ", "size"}], "*)"}]}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{
-   RowBox[{"Nsite", "=", "L"}], ";"}], " ", 
-  RowBox[{"(*", 
-   RowBox[{"number", " ", "of", " ", "sites"}], 
-   "*)"}]}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{
+   RowBox[{"L", "=", "16"}], ";", " ", 
+   RowBox[{"(*", 
+    RowBox[{"system", " ", "size"}], "*)"}], "\[IndentingNewLine]", 
+   RowBox[{"Nsite", "=", "L"}], ";", " ", 
+   RowBox[{"(*", 
+    RowBox[{"number", " ", "of", " ", "sites"}], "*)"}], 
+   "\[IndentingNewLine]", 
    RowBox[{"Nbond", "=", "L"}], ";"}], "\[IndentingNewLine]", 
   "\[IndentingNewLine]", 
   RowBox[{"(*", 
@@ -280,8 +276,10 @@ Cell[BoxData[{
    3.750742897468794*^9, 3.75074289764957*^9}, {3.750742942187757*^9, 
    3.750742961734915*^9}, {3.751552401270485*^9, 3.751552476041848*^9}, {
    3.751553430530037*^9, 3.751553444608007*^9}, {3.753640606098949*^9, 
-   3.753640606139627*^9}},
- CellLabel->"In[69]:=",ExpressionUUID->"8bf76df9-8ec9-4478-93f7-7589d5b92db0"],
+   3.753640606139627*^9}, {3.7539691330714483`*^9, 3.7539691331398706`*^9}, {
+   3.7539691720153913`*^9, 3.753969172108882*^9}, {3.753969213101931*^9, 
+   3.753969213222707*^9}},
+ CellLabel->"In[19]:=",ExpressionUUID->"8bf76df9-8ec9-4478-93f7-7589d5b92db0"],
 
 Cell[CellGroupData[{
 
@@ -289,21 +287,23 @@ Cell[BoxData["\<\"groundstate energy is\"\>"], "Print",
  CellChangeTimes->{
   3.750742822667261*^9, 3.750742898018347*^9, {3.7507429561248198`*^9, 
    3.750742962150888*^9}, {3.751552410297635*^9, 3.751552476260189*^9}, 
-   3.7515534454108267`*^9, 3.753640611254384*^9, 3.753874053667519*^9},
+   3.7515534454108267`*^9, 3.753640611254384*^9, 3.753874053667519*^9, 
+   3.753969136896352*^9, 3.7539691735028*^9, 3.753969214258545*^9},
  CellLabel->
   "During evaluation of \
-In[69]:=",ExpressionUUID->"9b596b7c-ee5d-4c34-9a35-3f855ad6a044"],
+In[19]:=",ExpressionUUID->"b976a7ec-1f84-4646-8f32-eed10ec4356c"],
 
 Cell[BoxData[
  RowBox[{"{", 
-  RowBox[{"-", "5.651093408937182`"}], "}"}]], "Print",
+  RowBox[{"-", "11.142296360616768`"}], "}"}]], "Print",
  CellChangeTimes->{
   3.750742822667261*^9, 3.750742898018347*^9, {3.7507429561248198`*^9, 
    3.750742962150888*^9}, {3.751552410297635*^9, 3.751552476260189*^9}, 
-   3.7515534454108267`*^9, 3.753640611254384*^9, 3.75387405369256*^9},
+   3.7515534454108267`*^9, 3.753640611254384*^9, 3.753874053667519*^9, 
+   3.753969136896352*^9, 3.7539691735028*^9, 3.753969217636849*^9},
  CellLabel->
   "During evaluation of \
-In[69]:=",ExpressionUUID->"12b047c3-e4da-4ed2-8065-c400e03df362"]
+In[19]:=",ExpressionUUID->"8b4105c2-5e1f-44d1-99b3-5467e0a38329"]
 }, Open  ]]
 }, Open  ]]
 },
@@ -325,10 +325,10 @@ CellTagsIndex->{}
 (*NotebookFileOutline
 Notebook[{
 Cell[CellGroupData[{
-Cell[579, 22, 10564, 261, 1267, "Input",ExpressionUUID->"8bf76df9-8ec9-4478-93f7-7589d5b92db0"],
+Cell[579, 22, 10671, 259, 1267, "Input",ExpressionUUID->"8bf76df9-8ec9-4478-93f7-7589d5b92db0"],
 Cell[CellGroupData[{
-Cell[11168, 287, 397, 7, 38, "Print",ExpressionUUID->"9b596b7c-ee5d-4c34-9a35-3f855ad6a044"],
-Cell[11568, 296, 425, 9, 38, "Print",ExpressionUUID->"12b047c3-e4da-4ed2-8065-c400e03df362"]
+Cell[11275, 285, 465, 8, 38, "Print",ExpressionUUID->"b976a7ec-1f84-4646-8f32-eed10ec4356c"],
+Cell[11743, 295, 495, 10, 38, "Print",ExpressionUUID->"8b4105c2-5e1f-44d1-99b3-5467e0a38329"]
 }, Open  ]]
 }, Open  ]]
 }
