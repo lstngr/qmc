@@ -13,7 +13,7 @@ using namespace qmc;
  */
 Configuration::Configuration()
     :beta(10),expansion_factor(0.2),measurement_frequency(10),
-    LoopMethod("wolff"),num_sweep(1000),max_sweep(-1),output_dest("data.out")
+    LoopMethod("wolff"),num_sweep(1000),output_dest("data.out")
 {
     param2num = std::map<std::string,int>();
     param2num.insert(std::pair<std::string,int> ("beta",0));
@@ -21,8 +21,7 @@ Configuration::Configuration()
     param2num.insert(std::pair<std::string,int> ("measurement_frequency",2));
     param2num.insert(std::pair<std::string,int> ("LoopMethod",3));
     param2num.insert(std::pair<std::string,int> ("num_sweep",4));
-    param2num.insert(std::pair<std::string,int> ("max_sweep",5));
-    param2num.insert(std::pair<std::string,int> ("output_dest",6));
+    param2num.insert(std::pair<std::string,int> ("output_dest",5));
 }
 
 /*! \brief Output Manager constructor
@@ -151,9 +150,6 @@ void IManager::ImportParameter(const std::string& key, const std::string& value)
             sim_conf_.num_sweep = std::stoi(value);
             break;
         case 5:
-            sim_conf_.max_sweep = std::stoi(value);
-            break;
-        case 6:
             sim_conf_.output_dest = value;
             break;
     }

@@ -64,31 +64,42 @@ Spin SSEData::GetSpin(unsigned int idx_spin) const{
 
 //! Sets the specified spin to a given value
 //! \param idx_spin Index of the spin
-//! \param val_spin Value of the spin
+//! \param spn The spin object that should be assigned. An invalid spin is accepted.
 void SSEData::SetSpin(unsigned int idx_spin, Spin spn){
     spins[idx_spin] = spn;
 }
 
+/*! Assigns a qmc::Spin to the given index. This updates the spin state of
+ * SSEData and not the bond vertex.*/
 void SSEData::SetSpin(unsigned int idx_spin, int two_s, int two_sz){
     SetSpin(idx_spin, Spin(two_s,two_sz));
 }
 
+/*! Assigns a qmc::Spin to the given leg of the bond vertex. This operation
+ * doesn't modify the spin state of the system.*/
 void SSEData::SetSpinVrtx(unsigned int idx_leg, Spin spn){
     bond_vertex_[idx_leg/4][idx_leg%4] = spn;
 }
 
+/*! Returns a qmc::Spin located at a given leg.*/
 Spin SSEData::GetLegSpin(unsigned int leg_idx) const{
     return bond_vertex_[leg_idx/4][leg_idx%4];
 }
 
+/*! Returns the bond vertex elements (vector of 4 spins) associated with a
+ * specific leg.*/
 std::vector<Spin> SSEData::GetBondVrtx(unsigned int oprtr_idx) const{
     return bond_vertex_[oprtr_idx];
 }
 
+/*! Raises the spin at a given leg of the bond vertex. This doesn't act on the
+ * spin state of the system directly!*/
 void SSEData::RaiseSpin(unsigned int idx_leg, int amount){
     bond_vertex_[idx_leg/4][idx_leg%4].Raise(amount);
 }
 
+/*! Lowers the spin at a given leg of the bond vertex. This doesn't act on the
+ * spin state of the system directly!*/
 void SSEData::LowerSpin(unsigned int idx_leg, unsigned int amount){
     RaiseSpin(idx_leg,-amount);
 }
@@ -105,10 +116,13 @@ int SSEData::GetOperator(unsigned int idx_oprtr) const{
     return oprtr[idx_oprtr];
 }
 
+/*! Returns the operator type stored by the SSEData. This operation doesn't
+ * compute the operator type from the bond vertex!*/
 int SSEData::GetOperatorType(unsigned int idx_oprtr) const{
     return oprtr[idx_oprtr]%num_oprtr_type_;
 }
 
+/*! Returns the bond that specified operator acts upon.*/
 int SSEData::GetOperatorBond(unsigned int idx_oprtr) const{
     return oprtr[idx_oprtr]/num_oprtr_type_;
 }
@@ -117,7 +131,9 @@ int SSEData::GetOperatorBond(unsigned int idx_oprtr) const{
  * Sets the value of an operator at a given time slot index. If called without
  * setting value, the identity operator is inserted.
  * \param idx_oprtr The index (p) of the operator to set.
- * \param val_oprtr s(p)=2*b+a-1 value to set the given operator to.
+ * \param oprtr_type The type of the operator to be set.
+ * \param oprtr_bond The bond the operator acts upon.
+ * \param update_bond_vrtx If set to true, the spins stored in the bond vertex are updated. By default, this task is left to perform to the caller function (an off-diagonal insertion may not be performed automatically).
  */
 void SSEData::SetOperator(unsigned int idx_oprtr, int oprtr_type, int oprtr_bond, bool update_bond_vrtx){
     // Should implement index and value checks
@@ -185,8 +201,9 @@ std::vector<Spin> SSEData::GetBondSpins(unsigned int num_bond) const{
     return spins;
 }
 
+//! Propagates the current spin state through the specified operator.
 void SSEData::UpdateSpins(unsigned int idx_oprtr){
-    // TODO - Fix DIRTY stuff
+    // TODO - Fix dirty calls
     std::vector<Spin> curSpin(lattice->PropagateBond(*this,idx_oprtr));
     SetSpin(GetOperatorBond(idx_oprtr), curSpin[0]);
     SetSpin((GetOperatorBond(idx_oprtr)+1)%spins.size(), curSpin[1]);
@@ -239,18 +256,22 @@ void SSEData::ResetLinkVertex(){
     v_last_  = std::vector<int>(lattice->GetSpinNumber(),-1);
 }
 
+//! Fetches the leg with lowest index involving the specified spin.
 int SSEData::GetVFirst(unsigned int idx_spin) const{
     return v_first_[idx_spin];
 }
 
+//! Sets the leg at which the specified spin is first acted upon by an operator.
 void SSEData::SetVFirst(unsigned int idx_spin, unsigned int idx_leg){
     v_first_[idx_spin] = idx_leg;
 }
 
+//! Fetches the leg with highest index involving the specified spin.
 int SSEData::GetVLast(unsigned int idx_spin) const{
     return v_last_[idx_spin];
 }
 
+//! Sets the leg at which the specified spin is last acted upon by an operator.
 void SSEData::SetVLast(unsigned int idx_spin, unsigned int idx_leg){
     v_last_[idx_spin] = idx_leg;
 }
@@ -268,15 +289,24 @@ unsigned int SSEData::SwitchAndReverse(unsigned int idx_leg) const {
     return idx_leg ^ 1U << 0;
 }
 
+//! Returns the leg reached by performing a "continue-straight" move from the
+//! current position.
 unsigned int SSEData::ContinueStraight(unsigned int idx_leg) const {
     // idx_leg XOR 10
     return idx_leg ^ 1U << 1;
 }
 
+//! Returns the leg reached by performing a "switch-and-continue" move from the
+//! current position.
 unsigned int SSEData::SwitchAndContinue(unsigned int idx_leg) const {
     return SwitchAndReverse(ContinueStraight(idx_leg));
 }
 
+/*! This procedure updates the spin state of the system according to the
+ * content of the bond vertex. Mutliple procedures will only modify the latter,
+ * leaving the spin state out-of-date compared to the currently inserted
+ * operators. After calling this function, one can safely perform measurements
+ * of observables or call any function relying on the spin state.*/
 void SSEData::UpdateSpinState(){
     for(unsigned int i=0;i<lattice->GetSpinNumber();i++){
         int first_leg(v_first_[i]);
@@ -305,20 +335,13 @@ void SSEData::Equilibrate(double expansion_factor) {
     }
 }
 
+//! Checks if the current configuration displays a positive weight.
 bool SSEData::CheckPositiveWeight(){
     int neg_count(0);
     for(unsigned int idx_oprtr(0); idx_oprtr<oprtr.size(); idx_oprtr++)
         neg_count += lattice->IsNegativeOperator(*this,4*idx_oprtr);
     if(neg_count%2){
-        neg_cfg+=1;
         return false;
     }
-    pos_cfg+=1;
     return true;
-}
-
-double SSEData::GetNegativeWeightRatio() {
-    double ratio(1.*neg_cfg/(pos_cfg+neg_cfg));
-    pos_cfg=0; neg_cfg=0;
-    return ratio;
 }

@@ -31,6 +31,7 @@ ObservableHamilton::ObservableHamilton(double beta): Observable("Energy"), beta_
  *  qmc::SSEData. These will be averaged on demand by
  *  qmc::ObservableHamilton::Measure.
  *  \param sim_data Pointer to the simulation data.
+ *  \param sign Sign of the global SSE configuration.
  */
 void ObservableHamilton::UpdateObservable(SSEData* const sim_data, short sign) {
     AddSign(sign);

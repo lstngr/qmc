@@ -222,7 +222,6 @@ void MCStep::LinkVertices(){
  * along each loop will be flipped (which may in some case mean the associated
  * operator type changes). Single spins define a loop on their own and might
  * also be flipped with probability 1/2.
- * \param pos_first Vector containing the leg index where a spin is first used.
  * \param all_links_empty Indicates no operators are inserted.
  */
 void MCStep::OperatorLoop(bool all_links_empty){

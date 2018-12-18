@@ -1,24 +1,21 @@
 /*! \mainpage SLiQ-MoCS
-  SLiQ-MoCS (Simple Lightweight Monte-Carlo Simulator) aims to provide a direct
-  understandable approach to simulating spin systems and their interaction.
-  Throughout a variety of classes and their methods, one can run basic
-  simulation or extend them easily using the built-in polymorphism of the code.
+  SLiQ-MoCS (Simple Lightweight Monte-Carlo Simulator) aims to provide a simple
+  implementation to simulating quantum spin systems and their interaction.
 
   The later is documented using Doxygen to avoid any misunderstanding in
   code design, and provide the user a simple solution to using the
   program.
 
-  \section code_design Code Design
-  In the aim of running a Quantum Monte-Carlo simulation, several components are necessary. We choose to separate these in several classes under a similar global namespace for the project, qmc. 
+  In the aim of running a Quantum Monte-Carlo simulation, several components are necessary. We choose to separate these in several classes under a similar global namespace for the project, qmc.
 
-  The reader is assumed to have read the project paper before browsing this
+  The reader can refer to the project paper in addition to browsing this
   documentation, as most of the theoretical background related to QMC
-  simulations is taken for granted.
-  
+  simulations is explained there.
+
   These afore-mentionned code components are:
-  - A \ref code_mcstep "user interface" to the simulation. We use \ref qmc::MCStep
-  "MCStep" for these purposes.
-  - A \ref code_ssedata "storage for simulation data"
+  - A \ref code_mcstep "user interface" to the simulation. We use \ref
+    qmc::MCStep for these purposes.
+  - A \ref code_ssedata "storage for SSE configuration data".
   + Spin and operator states are managed by \ref qmc::SSEData "SSEData"
   + Observables, needed for measurements, are inherited from \ref
   qmc::Observable "Observable".

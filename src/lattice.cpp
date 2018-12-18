@@ -6,6 +6,8 @@ namespace qmc{
     std::uniform_real_distribution<double> Lattice::random_prob = std::uniform_real_distribution<double>(.0,1.);
     std::mt19937 Lattice::rdm_engine = std::mt19937(7);
 
+    /*! Checks if the spin is physically possible. For example, a spin with
+     * two_sz>two_norm will result in this function returning false.*/
     bool Spin::IsValid() const{
         if(two_norm<0)
             return false;
@@ -15,30 +17,42 @@ namespace qmc{
             return false;
         return true;
     }
+
+    /*! If the current spin has non-physical values assigned to it, set it to a
+     * reference invalid state.*/
     void Spin::Validate(){
         if(not IsValid()){two_sz=0; two_norm=-1;}
     }
+
+    /*! Raises the spin's z-component and validates it.*/
     Spin& Spin::Raise(int amount){
         two_sz+=2*amount;
         Validate();
         return *this;
     }
+
+    /*! Lowers the spin's z-component and validates it.*/
     Spin& Spin::Lower(int amount){
         Raise(-amount);
         Validate();
         return *this;
     }
+
+    /*! Promotes the spin to a higher two_norm value and validates it.*/
     Spin& Spin::Promote(int amount){
         two_norm+=2*amount;
         Validate();
         return *this;
     }
+
+    /*! Demotes the spin to a lower two_norm value and validates it.*/
     Spin& Spin::Demote (int amount){
         Promote(-amount);
         Validate();
         return *this;
     }
 
+    /*! Acts on the spin as the operator D+ and validates it.*/
     Spin& Spin::RaiseD() {
         two_sz+=2;
         if(two_norm!=0)
@@ -48,6 +62,7 @@ namespace qmc{
         return *this;
     }
 
+    /*! Acts on the spin as the operator D- and validates it.*/
     Spin& Spin::LowerD() {
         two_sz-=2;
         if(two_norm!=0)
@@ -57,6 +72,7 @@ namespace qmc{
         return *this;
     }
 
+    /*! Acts on the spin as the operator Dz and validates it.*/
     Spin& Spin::Dz() {
         if(two_norm==0)
             Promote();
@@ -258,6 +274,11 @@ namespace qmc{
     // LATTICEDIAMOND //////////
     ////////////////////////////
 
+    //! Instantiates a qmc::LatticeDiamond object. Note that due to the
+    //! assymetry of the system (AB sites), what is here called length refers to
+    //! the number of pairs of such AB site pairs. One thus ends up simulating
+    //! 2*length dimers. The ratio of the coupling constants is given as second
+    //! parameter. We conventionnaly take J1=1.
     LatticeDiamond::LatticeDiamond(unsigned int length, double j2j1)
         :length(2*length), epsilon(j2j1),
         rdm_spin_norm(std::uniform_int_distribution<unsigned int>(0,3)),
@@ -478,6 +499,10 @@ namespace qmc{
         BSiteUpdate(ssedata);
     }
 
+    /*! Implements A site updates.
+     * These iterate on every A-site and try to promote/demote
+     * singlet/null-triplet spin clusters while satisfying detailed balance
+     * conditions.*/
     void LatticeDiamond::ASiteUpdate(SSEData& ssedata) {
         for(unsigned int idx_spin(0); idx_spin<this->GetSpinNumber();
                 idx_spin+=2){
@@ -603,6 +628,11 @@ namespace qmc{
         }
     }
 
+    /*! Provides B-Site updates.
+     * Iterates through all available spins located on B-sites. In the event
+     * that this spin stays a singlet or null-triplet through the whole SSE
+     * configuration (along the imaginary time axis), the algorithm attempts to
+     * flip it.*/
     void LatticeDiamond::BSiteUpdate(SSEData& ssedata) {
         for(unsigned int idx_spin(1);
                 idx_spin<this->GetSpinNumber();idx_spin+=2){

@@ -9,7 +9,15 @@ namespace qmc{
 
     class SSEData;
 
+    /*! Memory representation of a spin. It allows a more general handling than
+     * a simple vector, as well as the ability to assign (C++) operators to the
+     * class to simplify th program's syntax. Furthermore, it provides a way to
+     * quickly flag invalid spins.*/
     struct Spin{
+        //! Builds a qmc::Spin object. Note one must pass the TWO-norm and
+        //! TWO-z-component of the spin to this function. This convention is
+        //! simply due to the fact that using integers reduces memory use (and
+        //! numerical error) over doubles.
         Spin(int tsn, int tsz):two_norm(tsn),two_sz(tsz){}
         Spin& Raise(int amount=1);
         Spin& Lower(int amount=1);
@@ -20,8 +28,8 @@ namespace qmc{
         Spin& Dz();
         void Validate();
         bool IsValid() const;
-        int two_norm;
-        int two_sz;
+        int two_norm; //!< Norm of the spin
+        int two_sz; //!< Z-Component of the spin
     };
     bool operator==(const Spin& a, const Spin& b);
     std::ostream& operator<<(std::ostream& stream, const Spin& spin);
@@ -71,27 +79,91 @@ namespace qmc{
              * \return Number of bonds between spins.
              */
             virtual unsigned int GetBondNumber() const = 0;
+
+            //! Returns the number of operator types available. Useful to
+            //! initialize some qmc::SSEData attributes.
             virtual unsigned int HowManyOperators() const = 0;
+
+            //! Checks if the given leg can be used as starting position of a
+            //! loop
             virtual bool IsLoopStart(SSEData& ssedata, unsigned int leg) const = 0;
+
+            //! Returns a qmc::Spin to be used by the caller loop algorithm
+            //! function.
             virtual Spin GetLoopType(SSEData& ssedata, unsigned int leg) = 0;
+
+            /*! \brief Picks an out-leg given the entry-leg and loop type.
+             * Returns the exit leg when a loop (carrying spin loop_type)
+             * encounters the operator located at a given leg. The loop starting
+             * leg is also provided in order to account for special loop-closing
+             * criterion.
+             */
             virtual unsigned int ChooseMove(SSEData& ssedata, unsigned int leg, unsigned int leg_start, Spin& loop_type);
+
+            //! Returns the probabilities of moves when encountering an operator
+            //! in the following order: (bounce, straight-and-continue,
+            //! switch-and-continue, switch-and-reverse).
             virtual std::vector<double> FindPathProbs(SSEData& ssedata, unsigned int leg, const Spin& loop_type) const = 0;
+
+            //! Returns the operator type located at a given leg. This function
+            //! analyses the spins attached to the specified operator to return
+            //! the type. It DOESN'T fetch the type from qmc::SSEData!
             virtual int FindOperatorType(SSEData& ssedata, unsigned int leg) const = 0;
+
+            //! Returns the type of diagonal operator that could be inserted
+            //! between spins connected by the given bond. This function requires
+            //! an up-to-date spin state to be stored in qmc::SSEData and meant
+            //! to be called from qmc::MCStep::DiagUpdate.
             virtual int FindBondType(SSEData& ssedata, unsigned int bond) const = 0;
+
+            //! Given an operator position, fetches the spins attached to the
+            //! former operator, compute their counterparts after the operator
+            //! has acted upon them, and returns a size 2 vector containing
+            //! these.
             virtual std::vector<Spin> PropagateBond(SSEData& ssedata, unsigned int oprtr) const = 0;
+
+            /*!Finds the type of the requested operator through
+             * qmc::Lattice::FindOperatorType and calls
+             * qmc::Lattice::FindOperatorWeight(int) to get its weight.*/
             virtual double FindOperatorWeight(SSEData& ssedata, unsigned int leg) const = 0;
+
+            /*! Given an operator type, return its weight (simple switch-case).
+             * All the weights returned by this function are positive.*/
             virtual double FindOperatorWeight(int oprtr_type) const = 0;
+
+            /*! Given a leg, flags an operator with negative weight.*/
             virtual bool IsNegativeOperator(SSEData& ssedata, unsigned int leg) const = 0;
+
+            /*! If special update mechanisms are required, they should be
+             * inserted here. This function is called after the
+             * qmc::MCStep::OperatorLoop and before updating the spin state or
+             * measuring of the observables.*/
             virtual void SpecialUpdates(SSEData& ssedata) = 0;
+
+            /*! Checks if a given operator is diagonal.*/
             virtual bool IsDiagonal(SSEData& ssedata, unsigned int leg) const = 0;
+
+            //! Checks if a given operator type is diagonal.
             virtual bool IsDiagonal(int oprtr_type) const = 0;
+
+            //! Returns a random spin allowed within the lattice considered.
             virtual Spin RandomSpin() = 0;
         protected:
+            /*! Flags operators associated with negative weights. This function
+             * is protected as it is passed a std::vector<qmc::Spin> directly.*/
             virtual bool IsNegativeOperator(std::vector<Spin> spn_state) const = 0;
+
+            /*! Finds the weight associated to a certain operator by analyizing
+             * its bond vertex. This function is protected as it is passed a
+             * std::vector<qmc::Spin> directly.*/
             virtual int FindOperatorType(std::vector<Spin> spn_state) const = 0;
+
+            /*! Computes the propagation of a pair of spins through a given
+             * operator type. This function is protected as it is passed a
+             * std::vector<qmc::Spin> directly.*/
             virtual std::vector<Spin> Propagate(std::vector<Spin> spn_state, unsigned int oprtr_type) const = 0;
-            static std::mt19937 rdm_engine; //!< Random number generator engine
-            static std::uniform_real_distribution<double>random_prob;
+            static std::mt19937 rdm_engine; /*!< Random number generator engine. It is shared by all qmc::Lattice instances.*/
+            static std::uniform_real_distribution<double>random_prob; /*!< Uniform random generator of real numbers between 0 and 1. It is used for choosing paths and providing random spins. This object is shared by all instances of base class qmc::Lattice.*/
         private:
     };
 
@@ -126,14 +198,11 @@ namespace qmc{
             std::vector<Spin> Propagate(std::vector<Spin> spn_state, unsigned int oprtr_type) const override;
         private:
             unsigned int length; //!< Number of sites (and bonds) of the lattice.
-            std::uniform_int_distribution<int> rdm_spin_sz;
+            std::uniform_int_distribution<int> rdm_spin_sz; //!< Generates a random spin z-component (-1 or 1).
 
     };
 
     //! Implementation of a linear one dimensionnal lattice structure.
-    /*!
-     * Name is pretty self-explanatory
-     */
     class LatticeDiamond : public Lattice{
         public:
             LatticeDiamond(unsigned int length, double j2j1);
@@ -163,9 +232,9 @@ namespace qmc{
             std::vector<Spin> Propagate(std::vector<Spin> spn_state, unsigned int oprtr_type) const override;
         private:
             unsigned int length; //!< Number of sites (and bonds) of the lattice.
-            double epsilon;
-            std::uniform_int_distribution<unsigned int> rdm_spin_norm;
-            std::uniform_int_distribution<int> rdm_spin_sz;
+            double epsilon; //!< Stores the ratio of the coupling constants J1 and J2.
+            std::uniform_int_distribution<unsigned int> rdm_spin_norm; //!< Provides a random spin norm (0,1) for the qmc::LatticeDiamond::RandomSpin function.
+            std::uniform_int_distribution<int> rdm_spin_sz; //!< Provides a random spin z-component (-1,0,1) to the qmc::LatticeDiamond::RandomSpin function.
     };
 }
 

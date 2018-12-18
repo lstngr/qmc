@@ -17,7 +17,8 @@ namespace qmc{
             Observable(std::string name=""):sign(std::vector<short>({})),obsrv_name_(name){};
             virtual ~Observable(){};
             virtual void UpdateObservable(SSEData* const sim_data, short sign)=0; /*!< Updates the attributes of the observable after each sweep.
-            \param sim_data Pointer to a simulation container. Allows access to simulation data.*/
+            \param sim_data Pointer to a simulation container. Allows access to simulation data.
+            \param sign Global sign of the current configuration.*/
             virtual double Measure() const = 0; /*!< Returns the average value of the observable.
             \return The average value of the observable*/
 
@@ -25,10 +26,12 @@ namespace qmc{
             //! Returns the name of an observable
             //! \return Name of the observable
             std::string GetName() const {return obsrv_name_;}
+            /*! Adds the sign of the current configuration in Observable::sign.*/
             void AddSign(short is_neg=false);
+            /*! Returns the mean sign from Observable::sign.*/
             double MeanSign() const;
         private:
-            std::vector<short> sign;
+            std::vector<short> sign; //!< Stores the configuration sign related to the values measured by the observable.
             std::string obsrv_name_; //!< Name of the observable. Used when printing
     };
 
@@ -55,6 +58,7 @@ namespace qmc{
             double beta_; /*!< Inverse temperature of the system. It is set at class instantiation.*/
     };
 
+    //! Measures the average sign of SSE configurations
     class ObservableSign : public Observable{
         public:
             ObservableSign();

@@ -49,6 +49,13 @@ Where `doxydocs` contains the confguration parameters read by Doxygen.
 
 ## Various Remarks
 
+### Naming conventions
+During the planning of the project, it is unfortunate that the proposed lattice
+structure was mixed up with the actual "diamond" lattice, which doesn't exhibit
+horizontal J1 bonds compared to the one studied in this report. Although the
+appropriate corrections could be brought to the written report in time, the
+naming in the code itself wasn't altered to ensure satisfactory consistency.
+
 ### Main differences between v1 and v2
 We mentionned two versions of the code, where the second was said to be included
 for completness. While the first version follows closely the suggested

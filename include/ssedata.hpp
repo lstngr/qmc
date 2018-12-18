@@ -29,8 +29,6 @@ namespace qmc{
             void SetSpinVrtx(unsigned int idx_leg, Spin spn);
             Spin GetLegSpin(unsigned int leg_idx) const;
             std::vector<Spin> GetBondVrtx(unsigned int oprtr_idx) const;
-            void SetBondVrtx(unsigned int leg_idx, Spin spn);
-            // void SetBondVrtx(unsigned int oprtr_idx, std::vector<Spin> spnvrtx) const;
             int GetOperator(unsigned int idx_oprtr) const;
             int GetOperatorType(unsigned int idx_oprtr) const;
             int GetOperatorBond(unsigned int idx_oprtr) const;
@@ -58,19 +56,17 @@ namespace qmc{
             void UpdateSpinState();
             void Equilibrate(double expansion_factor);
             bool CheckPositiveWeight();
-            double GetNegativeWeightRatio();
 
         private:
             int num_time_slots; //!< Number of time slots to place operators
-            int num_oprtr_type_;
-            int pos_cfg;
-            int neg_cfg;
+            int num_oprtr_type_; //!< Number of allowed operator types
             std::vector<Spin> spins; //!< Spin state of the system (plus or minus ones in the Heisenberg 1/2 model)
             std::vector<int> oprtr; //!< Operator string. -1 indicates the identity operator
             std::vector<int> link_vertex; //!< Linked vertex storage of the configuration.
-            std::vector<std::vector<Spin>> bond_vertex_;
-            std::vector<int> v_first_;
-            std::vector<int> v_last_;
+            std::vector<std::vector<Spin>> bond_vertex_; /*!< Bond vertex of the system.
+            We call bond vertex an entity storing the four spins interacting at the legs of every operator.*/
+            std::vector<int> v_first_; //!< Container recording the first leg at which a spin interacts. If no interaction happens, the value -1 is assigned.
+            std::vector<int> v_last_; //!< Container recording the last leg at which a spin interacts. If no interaction happens, the value -1 is assigned.
             Lattice* const lattice; /*!< Lattice obtained from the qmc::MCStep constructor. The initialization is left to the user.*/
 
     };
