@@ -525,7 +525,7 @@ namespace qmc{
                 // Check something can actually be flipped
                 bool may_flip(false);
                 for(unsigned int idx_oprtr(0); idx_oprtr<old_oprtr_type.size(); idx_oprtr++){
-                    if(old_oprtr_type[idx_oprtr]!=-1) may_flip=true;
+                    if(old_oprtr_type[idx_oprtr]!=-1){may_flip=true; break;}
                 }
 
                 // Compute cluster flip probabilities.

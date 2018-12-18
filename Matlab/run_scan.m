@@ -6,10 +6,18 @@ function filelist = run_scan(conffile,param,values)
 % and stores simulation outputs in './out'.
 % In the event of existing output files, the SSE QMC data is appended and
 % split by the init line of the program.
+
 % NOTE: This script calls a parfor (parallel-for) to run multiple
 % simulations at the same time. In the event that the 'Parallel Computing
 % Toolbox' is unavalaible on the client machine, a usual for-loop will be
 % substituted.
+
+% NOTE: One can call run_scan with param=num_sweep, but the doing so just 
+% generates multiple output files with the same data at the head. The
+% process is equivalent to running one simulation for the longest num_sweep
+% desired and truncating the output file at the desired locations. run_scan
+% may still be used for convenience if the simulation time stays reasonably
+% low.
 
 param = string(param);
 filelist = cell(1,length(values));

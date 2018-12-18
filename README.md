@@ -25,7 +25,7 @@ contents of the report are then split in subsequent folders:
 - `Matlab`: Scripts for importing simulation results or running parameter scans.
 - `Report/`: LaTeX source code generating the report. It requires the following packages,
   * AMS suite, braket, bm and bbm for mathematical notations
-  * Hyperref, cleverref, caption, footmisc for captioning and references
+  * Hyperref, cleverref, cite, caption, footmisc for captioning and references
   * TiKz (with the calc and fit libraries), forloop and graphicx for graphical elements
   * Algorithm and algpseudocode for pseudo-code write up.
 
@@ -47,7 +47,8 @@ doxygen doxydocs
 
 Where `doxydocs` contains the confguration parameters read by Doxygen.
 
-## Remarks
+## Various Remarks
+
 ### Main differences between v1 and v2
 We mentionned two versions of the code, where the second was said to be included
 for completness. While the first version follows closely the suggested
@@ -64,5 +65,6 @@ browse the code documentation in order to get an idea of its structure.
 The version control tool Git was used in developing the program. The repository
 of this project can be found at the following URLs:
 
-Repository: [https://c4science.ch/diffusion/QMC](https://c4science.ch/diffusion/QMC)\
+Repository: [https://c4science.ch/diffusion/QMC](https://c4science.ch/diffusion/QMC)
+
 Clone URL: [https://c4science.ch/diffusion/QMC/frustrated-af-spin-chain-qmc.git](https://c4science.ch/diffusion/QMC/frustrated-af-spin-chain-qmc.git)
